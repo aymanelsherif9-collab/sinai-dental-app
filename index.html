@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sinai Clinic - Dental Management System</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
@@ -35,10 +33,10 @@
                 <p class="text-xs text-slate-500 mt-1">Interactive weekly schedule, chair occupancy & patient registry</p>
             </div>
             <div class="flex gap-2">
-                <button type="button" onclick="openAppointmentModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
+                <button type="button" onclick="openAppModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
                     + Book Appointment
                 </button>
-                <button type="button" onclick="openPatientModal()" class="inline-flex items-center justify-center bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-blue-700 shadow-sm transition">
+                <button type="button" onclick="openPatModal()" class="inline-flex items-center justify-center bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-blue-700 shadow-sm transition">
                     + Add New Patient
                 </button>
             </div>
@@ -69,19 +67,17 @@
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Weekly Schedule Planner</h3>
-                    <p id="weekRangeLabel" class="text-xs text-slate-500">Loading current week schedule...</p>
+                    <p id="weekRangeLabel" class="text-xs text-slate-500">Current Week</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="changeWeek(-1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">&larr; Prev Week</button>
-                    <button type="button" onclick="resetCurrentWeek()" class="px-3 py-1.5 bg-slate-100 text-xs font-bold text-slate-700 rounded-lg hover:bg-slate-200">Current Week</button>
-                    <button type="button" onclick="changeWeek(1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">Next Week &rarr;</button>
+                    <button type="button" onclick="moveWeek(-1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">&larr; Prev Week</button>
+                    <button type="button" onclick="moveWeek(0)" class="px-3 py-1.5 bg-slate-100 text-xs font-bold text-slate-700 rounded-lg hover:bg-slate-200">Current Week</button>
+                    <button type="button" onclick="moveWeek(1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">Next Week &rarr;</button>
                 </div>
             </div>
 
             <!-- Calendar Columns (7 Days Grid) -->
-            <div id="calendarGrid" class="grid grid-cols-1 md:grid-cols-7 gap-3 min-h-[380px]">
-                <div class="col-span-7 py-12 text-center text-slate-400 text-sm">Building calendar grid...</div>
-            </div>
+            <div id="calendarGrid" class="grid grid-cols-1 md:grid-cols-7 gap-3 min-h-[350px]"></div>
         </div>
 
         <!-- Patients Live Table -->
@@ -113,14 +109,14 @@
     </main>
 
     <!-- Modal: Book Appointment -->
-    <div id="appointmentModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
+    <div id="appModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-lg font-bold text-slate-900">Book Dental Appointment</h3>
-                <button type="button" onclick="closeAppointmentModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
+                <button type="button" onclick="closeAppModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
             </div>
             
-            <form id="appointmentForm" onsubmit="handleCreateAppointment(event)" class="space-y-4">
+            <form id="appForm" onsubmit="saveAppointment(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Select Patient *</label>
                     <select id="app_patient" required class="w-full text-xs p-2.5 border rounded-lg focus:outline-indigo-500 bg-white">
@@ -160,22 +156,22 @@
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-4 border-t">
-                    <button type="button" onclick="closeAppointmentModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                    <button type="submit" id="saveAppointmentBtn" class="bg-indigo-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Confirm Booking</button>
+                    <button type="button" onclick="closeAppModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                    <button type="submit" id="saveAppBtn" class="bg-indigo-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Confirm Booking</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal: Add New Patient -->
-    <div id="patientModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
+    <div id="patModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-lg font-bold text-slate-900">Register New Patient</h3>
-                <button type="button" onclick="closePatientModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
+                <button type="button" onclick="closePatModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
             </div>
             
-            <form id="patientForm" onsubmit="handleCreatePatient(event)" class="space-y-4">
+            <form id="patForm" onsubmit="savePatient(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name *</label>
                     <input id="p_name" type="text" required placeholder="e.g. Michael Smith" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500" />
@@ -217,84 +213,218 @@
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-4 border-t">
-                    <button type="button" onclick="closePatientModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                    <button type="submit" id="savePatientBtn" class="bg-blue-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Save Patient</button>
+                    <button type="button" onclick="closePatModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                    <button type="submit" id="savePatBtn" class="bg-blue-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Save Patient</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Script Logic -->
     <script>
-        const SUPABASE_PROJECT_URL = 'https://aimacggqivmyuyzmskbn.supabase.co';
-        let supabaseClient = null;
-        let globalBranchId = null;
-        let currentWeekOffset = 0;
-        let loadedAppointments = [];
+        const SB_URL = 'https://aimacggqivmyuyzmskbn.supabase.co';
+        let sb = null;
+        let branchId = null;
+        let weekOffset = 0;
+        let allAppointments = [];
 
-        // تشغيل فوري وآمن للتقويم والبيانات
-        window.addEventListener('DOMContentLoaded', () => {
-            renderWeeklyGrid(); // رسم التقويم فوراً بدون انتظار
+        function openPatModal() { document.getElementById('patModal').classList.remove('hidden'); }
+        function closePatModal() { document.getElementById('patModal').classList.add('hidden'); document.getElementById('patForm').reset(); }
+        function openAppModal() { document.getElementById('appModal').classList.remove('hidden'); }
+        function closeAppModal() { document.getElementById('appModal').classList.add('hidden'); document.getElementById('appForm').reset(); }
 
-            let savedKey = localStorage.getItem('supabase_key');
-            if (!savedKey) {
-                savedKey = prompt('Please paste your Supabase Public Anon Key once to connect:');
-                if (savedKey) localStorage.setItem('supabase_key', savedKey.trim());
+        function moveWeek(dir) {
+            weekOffset = (dir === 0) ? 0 : weekOffset + dir;
+            drawCalendar();
+        }
+
+        function drawCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const curr = new Date();
+            const first = curr.getDate() - curr.getDay() + (weekOffset * 7);
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(curr.getTime());
+                d.setDate(first + i);
+                days.push(d);
             }
 
-            if (savedKey) {
-                initConnection(SUPABASE_PROJECT_URL, savedKey.trim());
-            }
-        });
+            const startStr = days[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const endStr = days[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            document.getElementById('weekRangeLabel').innerText = `${startStr} - ${endStr}`;
 
-        function initConnection(url, key) {
-            try {
-                if (window.supabase) {
-                    supabaseClient = window.supabase.createClient(url, key);
-                    loadDashboardData();
+            const todayStr = new Date().toDateString();
+
+            days.forEach(day => {
+                const dateKey = day.toISOString().split('T')[0];
+                const isToday = day.toDateString() === todayStr;
+                const dayName = day.toLocaleDateString('en-US', { weekday: 'short' });
+                const dayNumber = day.getDate();
+
+                const dayApps = allAppointments.filter(a => a.start_time && a.start_time.startsWith(dateKey));
+
+                let col = `
+                    <div class="bg-slate-50/70 border ${isToday ? 'border-blue-500 ring-2 ring-blue-100 bg-blue-50/20' : 'border-slate-200'} rounded-xl p-3 flex flex-col min-h-[320px]">
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+                            <div>
+                                <span class="text-xs font-bold ${isToday ? 'text-blue-600' : 'text-slate-600'} uppercase">${dayName}</span>
+                                <h4 class="text-base font-extrabold text-slate-900">${dayNumber}</h4>
+                            </div>
+                            <button type="button" onclick="selectDate('${dateKey}')" class="text-blue-600 hover:text-blue-800 font-bold text-xs bg-white border border-blue-200 px-2 py-0.5 rounded shadow-sm">
+                                +
+                            </button>
+                        </div>
+                        <div class="space-y-2 flex-1 overflow-y-auto max-h-[300px]">
+                `;
+
+                if (dayApps.length === 0) {
+                    col += `<p class="text-[11px] text-slate-400 italic text-center py-8">No sessions</p>`;
                 } else {
-                    console.error('Supabase library not loaded yet');
+                    dayApps.forEach(a => {
+                        const timeStr = new Date(a.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        const pName = a.patients ? a.patients.full_name : 'Patient';
+                        col += `
+                            <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm text-xs">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-indigo-600 text-[11px]">${timeStr}</span>
+                                    <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">${a.status}</span>
+                                </div>
+                                <div class="font-bold text-slate-800 truncate">${pName}</div>
+                                ${a.procedure_notes ? `<div class="text-[10px] text-slate-400 truncate mt-1">${a.procedure_notes}</div>` : ''}
+                            </div>
+                        `;
+                    });
                 }
-            } catch (err) {
-                console.error('Connection failed:', err);
+                col += `</div></div>`;
+                grid.innerHTML += col;
+            });
+        }
+
+        function selectDate(dateKey) {
+            document.getElementById('app_start').value = `${dateKey}T10:00`;
+            document.getElementById('app_end').value = `${dateKey}T11:00`;
+            openAppModal();
+        }
+
+        async function loadData() {
+            if (!sb) return;
+
+            // 1. Branch
+            const { data: b } = await sb.from('branches').select('id').limit(1);
+            if (b && b.length > 0) branchId = b[0].id;
+
+            // 2. Patients
+            const { data: pts } = await sb.from('patients').select('*').order('created_at', { ascending: false });
+            if (pts) {
+                document.getElementById('totalPatients').innerText = pts.length;
+                const tbody = document.getElementById('patientsTableBody');
+                tbody.innerHTML = '';
+
+                const sel = document.getElementById('app_patient');
+                sel.innerHTML = '<option value="">-- Choose Patient --</option>';
+
+                pts.forEach(p => {
+                    sel.innerHTML += `<option value="${p.id}">#${p.file_number} - ${p.full_name}</option>`;
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                            <td class="py-3.5 px-6 font-mono font-bold text-blue-600">#${p.file_number}</td>
+                            <td class="py-3.5 px-6 font-semibold text-slate-900">${p.full_name}</td>
+                            <td class="py-3.5 px-6 text-slate-600">${p.gender || '-'}</td>
+                            <td class="py-3.5 px-6 text-slate-500 font-mono text-xs">${p.phone}</td>
+                            <td class="py-3.5 px-6 text-slate-600">${p.medical_alerts || 'None'}</td>
+                            <td class="py-3.5 px-6">${p.is_high_risk ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">High Risk</span>' : '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">Standard</span>'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 3. Dentists & Chairs
+            const { data: d } = await sb.from('dentists').select('*');
+            if (d) {
+                document.getElementById('totalDentists').innerText = d.length;
+                const dSel = document.getElementById('app_dentist');
+                dSel.innerHTML = '<option value="">-- Choose Dentist --</option>';
+                d.forEach(doc => dSel.innerHTML += `<option value="${doc.id}">${doc.full_name}</option>`);
+            }
+
+            const { data: c } = await sb.from('operatories').select('*');
+            if (c) {
+                document.getElementById('totalChairs').innerText = c.length;
+                const cSel = document.getElementById('app_chair');
+                cSel.innerHTML = '<option value="">-- Choose Chair --</option>';
+                c.forEach(chair => cSel.innerHTML += `<option value="${chair.id}">${chair.name}</option>`);
+            }
+
+            // 4. Appointments
+            const { data: apps } = await sb.from('appointments').select('*, patients(full_name, file_number)').order('start_time', { ascending: true });
+            if (apps) {
+                allAppointments = apps;
+                document.getElementById('totalAppointments').innerText = apps.length;
+                drawCalendar();
             }
         }
 
-        async function loadDashboardData() {
-            if (!supabaseClient) return;
+        async function savePatient(e) {
+            e.preventDefault();
+            const btn = document.getElementById('savePatBtn');
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
 
-            try {
-                // Fetch Branch ID
-                const { data: branches } = await supabaseClient.from('branches').select('id').limit(1);
-                if (branches && branches.length > 0) {
-                    globalBranchId = branches[0].id;
-                }
+            const { error } = await sb.from('patients').insert([{
+                full_name: document.getElementById('p_name').value.trim(),
+                phone: document.getElementById('p_phone').value.trim(),
+                gender: document.getElementById('p_gender').value,
+                date_of_birth: document.getElementById('p_dob').value || null,
+                national_id: document.getElementById('p_national_id').value.trim() || null,
+                medical_alerts: document.getElementById('p_alerts').value.trim() || null,
+                is_high_risk: document.getElementById('p_high_risk').checked
+            }]);
 
-                // 1. Fetch Patients
-                const { data: patients, error: pError } = await supabaseClient
-                    .from('patients')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+            btn.innerText = 'Save Patient';
+            btn.disabled = false;
 
-                if (!pError && patients) {
-                    document.getElementById('totalPatients').innerText = patients.length;
-                    const tbody = document.getElementById('patientsTableBody');
-                    tbody.innerHTML = '';
+            if (error) alert('Error: ' + error.message);
+            else { closePatModal(); loadData(); }
+        }
 
-                    const patientSelect = document.getElementById('app_patient');
-                    patientSelect.innerHTML = '<option value="">-- Choose Patient --</option>';
+        async function saveAppointment(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveAppBtn');
+            btn.innerText = 'Booking...';
+            btn.disabled = true;
 
-                    patients.forEach(p => {
-                        patientSelect.innerHTML += `<option value="${p.id}">#${p.file_number} -${p.full_name}</option>`;
+            const { error } = await sb.from('appointments').insert([{
+                branch_id: branchId,
+                patient_id: document.getElementById('app_patient').value,
+                dentist_id: document.getElementById('app_dentist').value,
+                operatory_id: document.getElementById('app_chair').value || null,
+                start_time: new Date(document.getElementById('app_start').value).toISOString(),
+                end_time: new Date(document.getElementById('app_end').value).toISOString(),
+                procedure_notes: document.getElementById('app_notes').value.trim() || null,
+                status: 'Scheduled'
+            }]);
 
-                        const alertBadge = p.is_high_risk 
-                            ? `<span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-xs font-bold">High Risk</span>` 
-                            : `<span class="bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Standard</span>`;
+            btn.innerText = 'Confirm Booking';
+            btn.disabled = false;
 
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                                <td class="py-3.5 px-6 font-mono font-bold text-blue-600">#${p.file_number}</td>
-                                <td class="py-3.5 px-6 font-semibold text-slate-900">${p.full_name}</td>
-                                <td class="py-3.5 px-6 text-slate-600">${p.gender || '-'}</td>
-                                <td class="py-3.5 px-6 text-slate-500 font-mono text-xs">${p.phone}</td>
-                                <td class="py-3.5 px-6 text-slate-600">${p.
+            if (error) alert('Error: ' + error.message);
+            else { closeAppModal(); loadData(); }
+        }
+
+        window.onload = function() {
+            drawCalendar();
+            let key = localStorage.getItem('supabase_key');
+            if (!key) {
+                key = prompt('Enter your Supabase Anon Key to sync:');
+                if (key) localStorage.setItem('supabase_key', key.trim());
+            }
+            if (key && window.supabase) {
+                sb = window.supabase.createClient(SB_URL, key.trim());
+                loadData();
+            }
+        };
+    </script>
+</body>
+</html>
