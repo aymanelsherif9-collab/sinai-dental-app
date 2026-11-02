@@ -34,13 +34,18 @@
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dental Operations Dashboard</h1>
                 <p class="text-xs text-slate-500 mt-1">Manage hospital dental records, chairs, and appointments</p>
             </div>
-            <button onclick="openPatientModal()" class="inline-flex items-center justify-center bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-blue-700 shadow-sm transition">
-                + Add New Patient
-            </button>
+            <div class="flex gap-2">
+                <button onclick="openAppointmentModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
+                    + Book Appointment
+                </button>
+                <button onclick="openPatientModal()" class="inline-flex items-center justify-center bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-blue-700 shadow-sm transition">
+                    + Add New Patient
+                </button>
+            </div>
         </div>
 
         <!-- Metric Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Patients</span>
                 <h2 id="totalPatients" class="text-3xl font-extrabold text-slate-900 mt-2">--</h2>
@@ -52,6 +57,41 @@
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hospital Operatories</span>
                 <h2 id="totalChairs" class="text-3xl font-extrabold text-slate-900 mt-2">--</h2>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Scheduled Sessions</span>
+                <h2 id="totalAppointments" class="text-3xl font-extrabold text-indigo-600 mt-2">--</h2>
+            </div>
+        </div>
+
+        <!-- Appointments Live Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Appointments Schedule</h3>
+                    <p class="text-xs text-slate-500">Live chair occupancy and patient flow</p>
+                </div>
+                <span class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-2.5 py-1 rounded-full">Real-Time Schedule</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                        <tr>
+                            <th class="py-3 px-6">Time / Date</th>
+                            <th class="py-3 px-6">Patient</th>
+                            <th class="py-3 px-6">Dentist</th>
+                            <th class="py-3 px-6">Operatory</th>
+                            <th class="py-3 px-6">Procedure / Notes</th>
+                            <th class="py-3 px-6">Status</th>
+                            <th class="py-3 px-6">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTableBody" class="divide-y divide-slate-100 text-sm">
+                        <tr>
+                            <td colspan="7" class="py-6 text-center text-slate-400">Loading appointments...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -82,6 +122,61 @@
             </div>
         </div>
     </main>
+
+    <!-- Modal: Book Appointment -->
+    <div id="appointmentModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-slate-900">Book Dental Appointment</h3>
+                <button onclick="closeAppointmentModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            
+            <form id="appointmentForm" onsubmit="handleCreateAppointment(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Select Patient *</label>
+                    <select id="app_patient" required class="w-full text-xs p-2.5 border rounded-lg focus:outline-indigo-500 bg-white">
+                        <option value="">-- Choose Patient --</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Dentist *</label>
+                        <select id="app_dentist" required class="w-full text-xs p-2.5 border rounded-lg focus:outline-indigo-500 bg-white">
+                            <option value="">-- Choose Dentist --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Operatory / Chair</label>
+                        <select id="app_chair" class="w-full text-xs p-2.5 border rounded-lg focus:outline-indigo-500 bg-white">
+                            <option value="">-- Choose Chair --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Start Time *</label>
+                        <input id="app_start" type="datetime-local" required class="w-full text-xs p-2.5 border rounded-lg focus:outline-indigo-500" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">End Time *</label>
+                        <input id="app_end" type="datetime-local" required class="w-full text-xs p-2.5 border rounded-lg focus:outline-indigo-500" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Procedure Notes</label>
+                    <input id="app_notes" type="text" placeholder="e.g. Scaling, Root Canal Session 1, Consultation" class="w-full text-xs p-2.5 border rounded-lg focus:outline-indigo-500" />
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-4 border-t">
+                    <button type="button" onclick="closeAppointmentModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                    <button type="submit" id="saveAppointmentBtn" class="bg-indigo-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Confirm Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal: Add New Patient -->
     <div id="patientModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
@@ -143,6 +238,7 @@
     <!-- Script Logic -->
     <script>
         let supabaseClient = null;
+        let globalBranchId = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('supabase_url');
@@ -164,6 +260,12 @@
         async function loadDashboardData() {
             if (!supabaseClient) return;
 
+            // Fetch Branch ID
+            const { data: branches } = await supabaseClient.from('branches').select('id').limit(1);
+            if (branches && branches.length > 0) {
+                globalBranchId = branches[0].id;
+            }
+
             // 1. Fetch Patients
             const { data: patients, error: pError } = await supabaseClient
                 .from('patients')
@@ -175,7 +277,12 @@
                 const tbody = document.getElementById('patientsTableBody');
                 tbody.innerHTML = '';
 
+                const patientSelect = document.getElementById('app_patient');
+                patientSelect.innerHTML = '<option value="">-- Choose Patient --</option>';
+
                 patients.forEach(p => {
+                    patientSelect.innerHTML += `<option value="${p.id}">#${p.file_number} - ${p.full_name}</option>`;
+
                     const alertBadge = p.is_high_risk 
                         ? `<span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-xs font-bold">High Risk</span>` 
                         : `<span class="bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Standard</span>`;
@@ -193,23 +300,107 @@
                 });
             }
 
-            // 2. Counts
-            const { count: dCount } = await supabaseClient.from('dentists').select('*', { count: 'exact', head: true });
-            document.getElementById('totalDentists').innerText = dCount || 0;
+            // 2. Fetch Dentists
+            const { data: dentists } = await supabaseClient.from('dentists').select('*');
+            if (dentists) {
+                document.getElementById('totalDentists').innerText = dentists.length;
+                const dentistSelect = document.getElementById('app_dentist');
+                dentistSelect.innerHTML = '<option value="">-- Choose Dentist --</option>';
+                dentists.forEach(d => {
+                    dentistSelect.innerHTML += `<option value="${d.id}">${d.full_name} (${d.specialty})</option>`;
+                });
+            }
 
-            const { count: opCount } = await supabaseClient.from('operatories').select('*', { count: 'exact', head: true });
-            document.getElementById('totalChairs').innerText = opCount || 0;
+            // 3. Fetch Chairs
+            const { data: chairs } = await supabaseClient.from('operatories').select('*');
+            if (chairs) {
+                document.getElementById('totalChairs').innerText = chairs.length;
+                const chairSelect = document.getElementById('app_chair');
+                chairSelect.innerHTML = '<option value="">-- Choose Chair --</option>';
+                chairs.forEach(c => {
+                    chairSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
+
+            // 4. Fetch Appointments with Joined Info
+            const { data: appointments, error: appError } = await supabaseClient
+                .from('appointments')
+                .select(`
+                    id, start_time, end_time, status, procedure_notes,
+                    patients ( full_name, file_number ),
+                    dentists ( full_name ),
+                    operatories ( name )
+                `)
+                .order('start_time', { ascending: true });
+
+            if (!appError && appointments) {
+                document.getElementById('totalAppointments').innerText = appointments.length;
+                const tbody = document.getElementById('appointmentsTableBody');
+                tbody.innerHTML = '';
+
+                if (appointments.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No appointments scheduled yet.</td></tr>`;
+                }
+
+                appointments.forEach(a => {
+                    const sDate = new Date(a.start_time).toLocaleString('en-US', { 
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                    });
+
+                    const statusColors = {
+                        'Scheduled': 'bg-blue-100 text-blue-700',
+                        'Confirmed': 'bg-indigo-100 text-indigo-700',
+                        'In-Chair': 'bg-amber-100 text-amber-700 font-bold',
+                        'Completed': 'bg-green-100 text-green-700',
+                        'Cancelled': 'bg-red-100 text-red-700'
+                    };
+
+                    const badge = statusColors[a.status] || 'bg-slate-100 text-slate-700';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                            <td class="py-3 px-6 font-medium text-slate-900">${sDate}</td>
+                            <td class="py-3 px-6 font-semibold text-slate-800">
+                                ${a.patients ? a.patients.full_name : 'Unknown'}
+                                <span class="text-xs text-slate-400 block font-normal">#${a.patients ? a.patients.file_number : ''}</span>
+                            </td>
+                            <td class="py-3 px-6 text-slate-600">${a.dentists ? a.dentists.full_name : 'N/A'}</td>
+                            <td class="py-3 px-6 text-slate-500 text-xs">${a.operatories ? a.operatories.name : 'Unassigned'}</td>
+                            <td class="py-3 px-6 text-slate-600 text-xs">${a.procedure_notes || '-'}</td>
+                            <td class="py-3 px-6">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs ${badge}">${a.status}</span>
+                            </td>
+                            <td class="py-3 px-6">
+                                <select onchange="updateAppointmentStatus('${a.id}', this.value)" class="text-xs border rounded p-1 bg-white">
+                                    <option value="Scheduled" ${a.status==='Scheduled'?'selected':''}>Scheduled</option>
+                                    <option value="Confirmed" ${a.status==='Confirmed'?'selected':''}>Confirmed</option>
+                                    <option value="In-Chair" ${a.status==='In-Chair'?'selected':''}>In-Chair</option>
+                                    <option value="Completed" ${a.status==='Completed'?'selected':''}>Completed</option>
+                                    <option value="Cancelled" ${a.status==='Cancelled'?'selected':''}>Cancelled</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
         }
 
-        function openPatientModal() {
-            document.getElementById('patientModal').classList.remove('hidden');
-        }
-
-        function closePatientModal() {
-            document.getElementById('patientModal').classList.add('hidden');
+        // Modals
+        function openPatientModal() { document.getElementById('patientModal').classList.remove('hidden'); }
+        function closePatientModal() { 
+            document.getElementById('patientModal').classList.add('hidden'); 
             document.getElementById('patientForm').reset();
         }
 
+        function openAppointmentModal() { 
+            document.getElementById('appointmentModal').classList.remove('hidden'); 
+        }
+        function closeAppointmentModal() { 
+            document.getElementById('appointmentModal').classList.add('hidden'); 
+            document.getElementById('appointmentForm').reset();
+        }
+
+        // Create Patient
         async function handleCreatePatient(e) {
             e.preventDefault();
             const btn = document.getElementById('savePatientBtn');
@@ -226,7 +417,7 @@
                 is_high_risk: document.getElementById('p_high_risk').checked
             };
 
-            const { data, error } = await supabaseClient.from('patients').insert([newPatient]);
+            const { error } = await supabaseClient.from('patients').insert([newPatient]);
 
             btn.innerText = 'Save Patient';
             btn.disabled = false;
@@ -235,6 +426,51 @@
                 alert('Error registering patient: ' + error.message);
             } else {
                 closePatientModal();
+                loadDashboardData();
+            }
+        }
+
+        // Book Appointment
+        async function handleCreateAppointment(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveAppointmentBtn');
+            btn.innerText = 'Booking...';
+            btn.disabled = true;
+
+            const newApp = {
+                branch_id: globalBranchId,
+                patient_id: document.getElementById('app_patient').value,
+                dentist_id: document.getElementById('app_dentist').value,
+                operatory_id: document.getElementById('app_chair').value || null,
+                start_time: new Date(document.getElementById('app_start').value).toISOString(),
+                end_time: new Date(document.getElementById('app_end').value).toISOString(),
+                procedure_notes: document.getElementById('app_notes').value.trim() || null,
+                status: 'Scheduled'
+            };
+
+            const { error } = await supabaseClient.from('appointments').insert([newApp]);
+
+            btn.innerText = 'Confirm Booking';
+            btn.disabled = false;
+
+            if (error) {
+                alert('Error booking appointment: ' + error.message);
+            } else {
+                closeAppointmentModal();
+                loadDashboardData();
+            }
+        }
+
+        // Update Appointment Status
+        async function updateAppointmentStatus(appId, newStatus) {
+            const { error } = await supabaseClient
+                .from('appointments')
+                .update({ status: newStatus })
+                .eq('id', appId);
+
+            if (error) {
+                alert('Error updating status: ' + error.message);
+            } else {
                 loadDashboardData();
             }
         }
