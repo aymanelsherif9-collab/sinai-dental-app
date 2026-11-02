@@ -7,7 +7,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
@@ -35,10 +35,10 @@
                 <p class="text-xs text-slate-500 mt-1">Interactive weekly schedule, chair occupancy & patient registry</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="openAppointmentModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
+                <button type="button" onclick="openAppointmentModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
                     + Book Appointment
                 </button>
-                <button onclick="openPatientModal()" class="inline-flex items-center justify-center bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-blue-700 shadow-sm transition">
+                <button type="button" onclick="openPatientModal()" class="inline-flex items-center justify-center bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-blue-700 shadow-sm transition">
                     + Add New Patient
                 </button>
             </div>
@@ -64,23 +64,23 @@
             </div>
         </div>
 
-        <!-- Interactive Weekly Calendar -->
+        <!-- Interactive Weekly Schedule -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Weekly Schedule Planner</h3>
-                    <p id="weekRangeLabel" class="text-xs text-slate-500">Showing current week</p>
+                    <p id="weekRangeLabel" class="text-xs text-slate-500">Loading current week schedule...</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="changeWeek(-1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">&larr; Prev Week</button>
-                    <button onclick="resetCurrentWeek()" class="px-3 py-1.5 bg-slate-100 text-xs font-bold text-slate-700 rounded-lg hover:bg-slate-200">Current Week</button>
-                    <button onclick="changeWeek(1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">Next Week &rarr;</button>
+                    <button type="button" onclick="changeWeek(-1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">&larr; Prev Week</button>
+                    <button type="button" onclick="resetCurrentWeek()" class="px-3 py-1.5 bg-slate-100 text-xs font-bold text-slate-700 rounded-lg hover:bg-slate-200">Current Week</button>
+                    <button type="button" onclick="changeWeek(1)" class="px-3 py-1.5 border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">Next Week &rarr;</button>
                 </div>
             </div>
 
-            <!-- Calendar Columns (7 Days) -->
+            <!-- Calendar Columns (7 Days Grid) -->
             <div id="calendarGrid" class="grid grid-cols-1 md:grid-cols-7 gap-3 min-h-[380px]">
-                <!-- Dynamically populated via JS -->
+                <div class="col-span-7 py-12 text-center text-slate-400 text-sm">Building calendar grid...</div>
             </div>
         </div>
 
@@ -117,7 +117,7 @@
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-lg font-bold text-slate-900">Book Dental Appointment</h3>
-                <button type="button" onclick="closeAppointmentModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+                <button type="button" onclick="closeAppointmentModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
             </div>
             
             <form id="appointmentForm" onsubmit="handleCreateAppointment(event)" class="space-y-4">
@@ -172,7 +172,7 @@
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-lg font-bold text-slate-900">Register New Patient</h3>
-                <button type="button" onclick="closePatientModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+                <button type="button" onclick="closePatientModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
             </div>
             
             <form id="patientForm" onsubmit="handleCreatePatient(event)" class="space-y-4">
@@ -226,23 +226,35 @@
 
     <!-- Script Logic -->
     <script>
+        const SUPABASE_PROJECT_URL = 'https://aimacggqivmyuyzmskbn.supabase.co';
         let supabaseClient = null;
         let globalBranchId = null;
         let currentWeekOffset = 0;
         let loadedAppointments = [];
 
+        // تشغيل فوري وآمن للتقويم والبيانات
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUrl = localStorage.getItem('supabase_url');
-            const savedKey = localStorage.getItem('supabase_key');
-            if (savedUrl && savedKey) {
-                initConnection(savedUrl, savedKey);
+            renderWeeklyGrid(); // رسم التقويم فوراً بدون انتظار
+
+            let savedKey = localStorage.getItem('supabase_key');
+            if (!savedKey) {
+                savedKey = prompt('Please paste your Supabase Public Anon Key once to connect:');
+                if (savedKey) localStorage.setItem('supabase_key', savedKey.trim());
+            }
+
+            if (savedKey) {
+                initConnection(SUPABASE_PROJECT_URL, savedKey.trim());
             }
         });
 
         function initConnection(url, key) {
             try {
-                supabaseClient = supabase.createClient(url, key);
-                loadDashboardData();
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(url, key);
+                    loadDashboardData();
+                } else {
+                    console.error('Supabase library not loaded yet');
+                }
             } catch (err) {
                 console.error('Connection failed:', err);
             }
@@ -251,67 +263,38 @@
         async function loadDashboardData() {
             if (!supabaseClient) return;
 
-            // Fetch Branch ID
-            const { data: branches } = await supabaseClient.from('branches').select('id').limit(1);
-            if (branches && branches.length > 0) {
-                globalBranchId = branches[0].id;
-            }
+            try {
+                // Fetch Branch ID
+                const { data: branches } = await supabaseClient.from('branches').select('id').limit(1);
+                if (branches && branches.length > 0) {
+                    globalBranchId = branches[0].id;
+                }
 
-            // 1. Fetch Patients
-            const { data: patients, error: pError } = await supabaseClient
-                .from('patients')
-                .select('*')
-                .order('created_at', { ascending: false });
+                // 1. Fetch Patients
+                const { data: patients, error: pError } = await supabaseClient
+                    .from('patients')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-            if (!pError && patients) {
-                document.getElementById('totalPatients').innerText = patients.length;
-                const tbody = document.getElementById('patientsTableBody');
-                tbody.innerHTML = '';
+                if (!pError && patients) {
+                    document.getElementById('totalPatients').innerText = patients.length;
+                    const tbody = document.getElementById('patientsTableBody');
+                    tbody.innerHTML = '';
 
-                const patientSelect = document.getElementById('app_patient');
-                patientSelect.innerHTML = '<option value="">-- Choose Patient --</option>';
+                    const patientSelect = document.getElementById('app_patient');
+                    patientSelect.innerHTML = '<option value="">-- Choose Patient --</option>';
 
-                patients.forEach(p => {
-                    patientSelect.innerHTML += `<option value="${p.id}">#${p.file_number} - ${p.full_name}</option>`;
+                    patients.forEach(p => {
+                        patientSelect.innerHTML += `<option value="${p.id}">#${p.file_number} -${p.full_name}</option>`;
 
-                    const alertBadge = p.is_high_risk 
-                        ? `<span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-xs font-bold">High Risk</span>` 
-                        : `<span class="bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Standard</span>`;
+                        const alertBadge = p.is_high_risk 
+                            ? `<span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-xs font-bold">High Risk</span>` 
+                            : `<span class="bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Standard</span>`;
 
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                            <td class="py-3.5 px-6 font-mono font-bold text-blue-600">#${p.file_number}</td>
-                            <td class="py-3.5 px-6 font-semibold text-slate-900">${p.full_name}</td>
-                            <td class="py-3.5 px-6 text-slate-600">${p.gender || '-'}</td>
-                            <td class="py-3.5 px-6 text-slate-500 font-mono text-xs">${p.phone}</td>
-                            <td class="py-3.5 px-6 text-slate-600">${p.medical_alerts || 'None'}</td>
-                            <td class="py-3.5 px-6">${alertBadge}</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            // 2. Fetch Dentists
-            const { data: dentists } = await supabaseClient.from('dentists').select('*');
-            if (dentists) {
-                document.getElementById('totalDentists').innerText = dentists.length;
-                const dentistSelect = document.getElementById('app_dentist');
-                dentistSelect.innerHTML = '<option value="">-- Choose Dentist --</option>';
-                dentists.forEach(d => {
-                    dentistSelect.innerHTML += `<option value="${d.id}">${d.full_name} (${d.specialty})</option>`;
-                });
-            }
-
-            // 3. Fetch Chairs
-            const { data: chairs } = await supabaseClient.from('operatories').select('*');
-            if (chairs) {
-                document.getElementById('totalChairs').innerText = chairs.length;
-                const chairSelect = document.getElementById('app_chair');
-                chairSelect.innerHTML = '<option value="">-- Choose Chair --</option>';
-                chairs.forEach(c => {
-                    chairSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                });
-            }
-
-            // 4. Fetch Appointments
-            const { data: appointments, error: appError } = await supabaseClient
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                                <td class="py-3.5 px-6 font-mono font-bold text-blue-600">#${p.file_number}</td>
+                                <td class="py-3.5 px-6 font-semibold text-slate-900">${p.full_name}</td>
+                                <td class="py-3.5 px-6 text-slate-600">${p.gender || '-'}</td>
+                                <td class="py-3.5 px-6 text-slate-500 font-mono text-xs">${p.phone}</td>
+                                <td class="py-3.5 px-6 text-slate-600">${p.
