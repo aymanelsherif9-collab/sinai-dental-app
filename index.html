@@ -16,16 +16,23 @@
         .cond-Crown { background-color: #fef3c7; border-color: #f59e0b; color: #b45309; }
         .cond-Implant { background-color: #ccfbf1; border-color: #14b8a6; color: #0f766e; }
         .cond-Missing { background-color: #f1f5f9; border-color: #94a3b8; color: #64748b; text-decoration: line-through; opacity: 0.6; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printableInvoice, #printableInvoice * { visibility: visible; }
+            #printableInvoice { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
     <!-- Top Navigation Bar -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
             <div class="flex items-center space-x-3">
                 <span class="text-2xl font-black text-blue-600">Sinai Clinic</span>
-                <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded uppercase">Dental Dept</span>
+                <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded uppercase">Dental Hospital Dept</span>
             </div>
             <div class="flex items-center space-x-4">
                 <span class="text-sm font-medium text-slate-500">Sharm El Sheikh</span>
@@ -35,13 +42,13 @@
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 no-print">
         
         <!-- Header Actions -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dental Operations Dashboard</h1>
-                <p class="text-xs text-slate-500 mt-1">Weekly schedule, clinical charts, treatment plans & EGP billing</p>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dental Operations & Financial Control</h1>
+                <p class="text-xs text-slate-500 mt-1">Multi-tier pricing, insurance co-pay splits, clinical charts & receipts</p>
             </div>
             <div class="flex gap-2">
                 <button type="button" onclick="openAppModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
@@ -89,10 +96,10 @@
             <div id="calendarGrid" class="grid grid-cols-1 md:grid-cols-7 gap-3 min-h-[320px]"></div>
         </div>
 
-        <!-- Patients Directory with Chart & Billing Actions -->
+        <!-- Patients Directory with Billing Tier Indicators -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="text-base font-bold text-slate-900">Patient Directory & Clinical Files</h3>
+                <h3 class="text-base font-bold text-slate-900">Patient Directory & Financial Profiles</h3>
                 <span class="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full">● Live Sync</span>
             </div>
             <div class="overflow-x-auto">
@@ -101,51 +108,91 @@
                         <tr>
                             <th class="py-3 px-6">MRN</th>
                             <th class="py-3 px-6">Patient Name</th>
+                            <th class="py-3 px-6">Payer / Category</th>
                             <th class="py-3 px-6">Phone</th>
                             <th class="py-3 px-6">Medical Alerts</th>
                             <th class="py-3 px-6 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="patientsTableBody" class="divide-y divide-slate-100 text-sm">
-                        <tr>
-                            <td colspan="5" class="py-6 text-center text-slate-400">Loading patients data...</td>
-                        </tr>
+                        <tr><td colspan="6" class="py-6 text-center text-slate-400">Loading patients data...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- Modal: Treatment Planning & Billing -->
-    <div id="billingModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-3xl max-w-4xl w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <!-- Modal: Comprehensive Billing & Insurance Splitting -->
+    <div id="billingModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
+        <div class="bg-white rounded-3xl max-w-4xl w-full p-6 space-y-6 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-4">
                 <div>
-                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Financial & Clinical Operations</span>
-                    <h3 id="billingPatientTitle" class="text-xl font-black text-slate-900 mt-0.5">Treatment Plan & Payments (EGP)</h3>
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Financial Policy & Patient Ledger</span>
+                    <h3 id="billingPatientTitle" class="text-xl font-black text-slate-900 mt-0.5">Billing & Insurance Breakdown (EGP)</h3>
                 </div>
-                <button type="button" onclick="closeBillingModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="printInvoiceReceipt()" class="bg-slate-800 text-white text-xs px-3.5 py-2 rounded-xl font-bold hover:bg-slate-900 transition flex items-center gap-1.5 shadow-sm">
+                        🖨️ Print Invoice & Receipt
+                    </button>
+                    <button type="button" onclick="closeBillingModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
+                </div>
             </div>
 
-            <!-- Financial Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Billing & Insurance Profile Settings -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Billing Tier & Policy Parameters</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Payer Tier / Tariff *</label>
+                        <select id="plan_category" onchange="updatePlanInsuranceParams()" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white font-medium">
+                            <option value="Cash - Egyptian">Cash - Egyptian (المواطن المصري)</option>
+                            <option value="Cash - Foreign Tourist">Cash - Foreign Tourist (أجنبي نقدي)</option>
+                            <option value="Insurance - Egyptian">Insurance - Egyptian (تأمين مصري)</option>
+                            <option value="Insurance - Russian">Insurance - Russian (تأمين سياحي روسي)</option>
+                            <option value="Insurance - Western European">Insurance - Western Europe (تأمين أوروبي غريب)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Insurance / Assistance Co.</label>
+                        <input id="plan_ins_company" type="text" placeholder="e.g. AXA, Balt Assistance, Allianz" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Coverage (%)</label>
+                        <input id="plan_ins_pct" type="number" min="0" max="100" placeholder="e.g. 80" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Coverage Cap / Limit (EGP)</label>
+                        <input id="plan_ins_cap" type="number" step="100" placeholder="0 for unlimited" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" onclick="savePlanPolicy()" class="bg-slate-700 text-white text-xs px-4 py-1.5 rounded-lg font-semibold hover:bg-slate-800 transition">Update Policy</button>
+                </div>
+            </div>
+
+            <!-- Financial Summary Cards with Insurance vs Patient Split -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Total Plan Cost</span>
-                    <h4 id="planTotalCost" class="text-2xl font-black text-slate-900 mt-1">0.00 EGP</h4>
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Gross Total</span>
+                    <h4 id="planGrossTotal" class="text-xl font-black text-slate-900 mt-1">0.00 EGP</h4>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-2xl">
+                    <span class="text-xs font-semibold text-indigo-600 uppercase">Insurance Claim</span>
+                    <h4 id="planInsuranceClaim" class="text-xl font-black text-indigo-700 mt-1">0.00 EGP</h4>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
-                    <span class="text-xs font-semibold text-emerald-600 uppercase">Total Paid</span>
-                    <h4 id="planTotalPaid" class="text-2xl font-black text-emerald-700 mt-1">0.00 EGP</h4>
+                    <span class="text-xs font-semibold text-emerald-600 uppercase">Patient Co-Pay Paid</span>
+                    <h4 id="planPatientPaid" class="text-xl font-black text-emerald-700 mt-1">0.00 EGP</h4>
                 </div>
                 <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl">
-                    <span class="text-xs font-semibold text-rose-500 uppercase">Outstanding Balance</span>
-                    <h4 id="planBalance" class="text-2xl font-black text-rose-700 mt-1">0.00 EGP</h4>
+                    <span class="text-xs font-semibold text-rose-500 uppercase">Patient Balance Due</span>
+                    <h4 id="planPatientDue" class="text-xl font-black text-rose-700 mt-1">0.00 EGP</h4>
                 </div>
             </div>
 
             <!-- Add Procedure Item Form -->
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">+ Add Treatment Procedure</h4>
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">+ Add Procedure / Service</h4>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tooth # (Optional)</label>
@@ -153,27 +200,27 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Procedure Name *</label>
-                        <input id="item_name" type="text" placeholder="e.g. Composite Restoration, Root Canal, Zirconia Crown" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                        <input id="item_name" type="text" placeholder="e.g. Composite Restoration, Root Canal, Emergency Extraction" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Price (EGP) *</label>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tariff Price (EGP) *</label>
                         <input id="item_price" type="number" step="0.5" placeholder="e.g. 1500" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
                     </div>
                 </div>
                 <div class="flex justify-end">
-                    <button type="button" onclick="addTreatmentItem()" id="addItemBtn" class="bg-emerald-600 text-white text-xs px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">Add To Plan</button>
+                    <button type="button" onclick="addTreatmentItem()" id="addItemBtn" class="bg-emerald-600 text-white text-xs px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">Add To Invoice</button>
                 </div>
             </div>
 
             <!-- Treatment Plan Items Table -->
             <div>
-                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Treatment Items List</h4>
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Itemized Services</h4>
                 <div class="border border-slate-200 rounded-xl overflow-hidden">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
                             <tr>
                                 <th class="p-3">Tooth #</th>
-                                <th class="p-3">Procedure</th>
+                                <th class="p-3">Procedure Description</th>
                                 <th class="p-3 text-right">Price (EGP)</th>
                                 <th class="p-3 text-center">Status</th>
                             </tr>
@@ -187,42 +234,42 @@
 
             <!-- Receive Payment Form -->
             <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-200 space-y-3">
-                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider">💳 Receive Patient Payment</h4>
+                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider">💳 Receive Patient Co-Pay / Cash Settlement</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Amount Paid (EGP) *</label>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Patient Payment (EGP) *</label>
                         <input id="pay_amount" type="number" step="0.5" placeholder="Amount" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white" />
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Method *</label>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Payment Method *</label>
                         <select id="pay_method" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white">
-                            <option value="Cash">Cash (خزينة)</option>
-                            <option value="Visa / Mastercard">Visa / Mastercard</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Installment">Installment (قسط)</option>
+                            <option value="Cash">Cash (خزينة المستشفى)</option>
+                            <option value="Visa / Mastercard">Visa / Mastercard POS</option>
+                            <option value="Bank Transfer">Bank Transfer (تحويل بنكي)</option>
+                            <option value="Installment">Installment (أقساط)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Notes / Receipt Ref</label>
-                        <input id="pay_notes" type="text" placeholder="e.g. Down payment" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white" />
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Receipt Reference / Notes</label>
+                        <input id="pay_notes" type="text" placeholder="e.g. Co-pay deposit, patient share" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white" />
                     </div>
                 </div>
                 <div class="flex justify-end">
-                    <button type="button" onclick="recordPayment()" id="recordPayBtn" class="bg-blue-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Record Payment</button>
+                    <button type="button" onclick="recordPayment()" id="recordPayBtn" class="bg-blue-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Record Patient Payment</button>
                 </div>
             </div>
 
             <!-- Payment Transactions Log -->
             <div>
-                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Payment Receipts Log</h4>
-                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-40 overflow-y-auto">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Payment Receipts History</h4>
+                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-36 overflow-y-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
                             <tr>
                                 <th class="p-2.5">Receipt #</th>
                                 <th class="p-2.5">Method</th>
                                 <th class="p-2.5">Notes</th>
-                                <th class="p-2.5 text-right">Amount (EGP)</th>
+                                <th class="p-2.5 text-right">Amount Paid</th>
                                 <th class="p-2.5 text-right">Date</th>
                             </tr>
                         </thead>
@@ -235,8 +282,96 @@
         </div>
     </div>
 
+    <!-- Official Printable Document Container (Hidden on screen, rendered on Print) -->
+    <div id="printableInvoice" class="hidden">
+        <div class="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">SINAI CLINIC HOSPITAL</h1>
+                <p class="text-xs font-bold text-slate-600">Dental Department - Specialized Maxillofacial & Dental Care</p>
+                <p class="text-[11px] text-slate-500">Sharm El Sheikh, South Sinai, Egypt | Tel: +20 69 3660000</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-lg font-black text-blue-700 uppercase">Official Invoice & Settlement</h2>
+                <p class="text-xs font-mono font-bold text-slate-800" id="printInvNumber">INV-0000</p>
+                <p class="text-[11px] text-slate-500" id="printInvDate">Date: --/--/----</p>
+            </div>
+        </div>
+
+        <!-- Patient & Payer Information -->
+        <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs mb-6">
+            <div>
+                <p><span class="font-bold">Patient Name:</span> <span id="printPatientName">--</span></p>
+                <p><span class="font-bold">MRN / File No:</span> <span id="printPatientMRN">--</span></p>
+                <p><span class="font-bold">Contact / Phone:</span> <span id="printPatientPhone">--</span></p>
+            </div>
+            <div class="text-right">
+                <p><span class="font-bold">Billing Category:</span> <span id="printBillingCat">--</span></p>
+                <p><span class="font-bold">Insurance / Assistance:</span> <span id="printInsCo">None</span></p>
+                <p><span class="font-bold">Coverage Terms:</span> <span id="printCoverageTerms">Direct Cash</span></p>
+            </div>
+        </div>
+
+        <!-- Procedures Table -->
+        <table class="w-full text-left text-xs border-collapse mb-6 border border-slate-200">
+            <thead class="bg-slate-100 border-b border-slate-300">
+                <tr>
+                    <th class="p-2.5">#</th>
+                    <th class="p-2.5">Tooth</th>
+                    <th class="p-2.5">Dental Procedure / Description</th>
+                    <th class="p-2.5 text-right">Amount (EGP)</th>
+                </tr>
+            </thead>
+            <tbody id="printItemsTbody" class="divide-y divide-slate-200"></tbody>
+        </table>
+
+        <!-- Financial Breakdown Box -->
+        <div class="flex justify-end mb-8">
+            <div class="w-72 space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div class="flex justify-between text-slate-600">
+                    <span>Gross Total:</span>
+                    <span id="printGrossTotal" class="font-bold">0.00 EGP</span>
+                </div>
+                <div class="flex justify-between text-indigo-700">
+                    <span>Insurance Claim Amount:</span>
+                    <span id="printInsShare" class="font-bold">0.00 EGP</span>
+                </div>
+                <div class="flex justify-between text-slate-900 border-t pt-1 font-bold">
+                    <span>Patient Net Responsibility:</span>
+                    <span id="printPatientNet">0.00 EGP</span>
+                </div>
+                <div class="flex justify-between text-emerald-700">
+                    <span>Patient Cash Paid:</span>
+                    <span id="printCashPaid" class="font-bold">0.00 EGP</span>
+                </div>
+                <div class="flex justify-between text-rose-700 border-t pt-1 font-bold text-sm">
+                    <span>Remaining Balance Due:</span>
+                    <span id="printBalanceDue">0.00 EGP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signatures & Hospital Stamp -->
+        <div class="grid grid-cols-3 gap-6 text-center text-xs pt-8 border-t border-slate-200">
+            <div>
+                <p class="font-bold text-slate-800">Treating Clinician</p>
+                <div class="h-12"></div>
+                <p class="text-slate-400 border-t border-slate-300 pt-1">Doctor Signature</p>
+            </div>
+            <div>
+                <p class="font-bold text-slate-800">Patient / Policy Holder</p>
+                <div class="h-12"></div>
+                <p class="text-slate-400 border-t border-slate-300 pt-1">Patient Acceptance</p>
+            </div>
+            <div>
+                <p class="font-bold text-slate-800">Cashier & Hospital Stamp</p>
+                <div class="h-12"></div>
+                <p class="text-slate-400 border-t border-slate-300 pt-1">Sinai Clinic Accounts</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Interactive Odontogram (Dental Chart) -->
-    <div id="chartModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div id="chartModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
         <div class="bg-white rounded-3xl max-w-5xl w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-4">
                 <div>
@@ -343,7 +478,7 @@
     </div>
 
     <!-- Modal: Book Appointment -->
-    <div id="appModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
+    <div id="appModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden no-print">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-lg font-bold text-slate-900">Book Dental Appointment</h3>
@@ -398,7 +533,7 @@
     </div>
 
     <!-- Modal: Add New Patient -->
-    <div id="patModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
+    <div id="patModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden no-print">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-lg font-bold text-slate-900">Register New Patient</h3>
@@ -408,14 +543,27 @@
             <form id="patForm" onsubmit="savePatient(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name *</label>
-                    <input id="p_name" type="text" required placeholder="e.g. Michael Smith" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500" />
+                    <input id="p_name" type="text" required placeholder="e.g. Michael Smith / سيرجي إيفانوف" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500" />
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Billing / Insurance Tier *</label>
+                        <select id="p_category" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white font-medium">
+                            <option value="Cash - Egyptian">Cash - Egyptian</option>
+                            <option value="Cash - Foreign Tourist">Cash - Foreign Tourist</option>
+                            <option value="Insurance - Egyptian">Insurance - Egyptian</option>
+                            <option value="Insurance - Russian">Insurance - Russian</option>
+                            <option value="Insurance - Western European">Insurance - Western European</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Phone Number *</label>
                         <input id="p_phone" type="text" required placeholder="+20..." class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500" />
                     </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Gender</label>
                         <select id="p_gender" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500">
@@ -423,17 +571,15 @@
                             <option value="Female">Female</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Date of Birth</label>
                         <input id="p_dob" type="date" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500" />
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">National ID / Passport</label>
-                        <input id="p_national_id" type="text" placeholder="ID or Passport" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500" />
-                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">National ID / Passport No.</label>
+                    <input id="p_national_id" type="text" placeholder="Passport or Egyptian National ID" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500" />
                 </div>
 
                 <div>
@@ -462,10 +608,10 @@
         let allAppointments = [];
 
         // Active States
-        let currentPatientId = null;
-        let currentToothRecords = {};
-        let activeSelectedTooth = null;
-        let activePlanId = null;
+        let currentPatient = null;
+        let activePlan = null;
+        let loadedItems = [];
+        let loadedPayments = [];
 
         function openPatModal() { document.getElementById('patModal').classList.remove('hidden'); }
         function closePatModal() { document.getElementById('patModal').classList.add('hidden'); document.getElementById('patForm').reset(); }
@@ -567,17 +713,28 @@
 
                 pts.forEach(p => {
                     sel.innerHTML += `<option value="${p.id}">#${p.file_number} - ${p.full_name}</option>`;
+                    
+                    let badgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                    if (p.billing_category.includes('Russian')) badgeClass = 'bg-red-50 text-red-700 border-red-200';
+                    if (p.billing_category.includes('Western European')) badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+                    if (p.billing_category.includes('Egyptian')) badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50 transition border-b border-slate-100">
                             <td class="py-3.5 px-6 font-mono font-bold text-blue-600">#${p.file_number}</td>
                             <td class="py-3.5 px-6 font-semibold text-slate-900">${p.full_name}</td>
+                            <td class="py-3.5 px-6">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeClass}">
+                                    ${p.billing_category || 'Cash Standard'}
+                                </span>
+                            </td>
                             <td class="py-3.5 px-6 text-slate-500 font-mono text-xs">${p.phone}</td>
                             <td class="py-3.5 px-6 text-slate-600">${p.medical_alerts || 'None'}</td>
                             <td class="py-3.5 px-6 text-center space-x-2">
                                 <button type="button" onclick="openDentalChart('${p.id}', '${p.full_name}', ${p.file_number})" class="bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition">
                                     🦷 Dental Chart
                                 </button>
-                                <button type="button" onclick="openBillingModal('${p.id}', '${p.full_name}', ${p.file_number})" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-emerald-200 transition">
+                                <button type="button" onclick="openBillingModal('${p.id}')" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-emerald-200 transition">
                                     💳 Billing & Plan
                                 </button>
                             </td>
@@ -612,59 +769,104 @@
             }
         }
 
-        // --- TREATMENT PLANNING & BILLING LOGIC ---
+        // --- COMPREHENSIVE BILLING & INSURANCE ENGINE ---
         function closeBillingModal() {
             document.getElementById('billingModal').classList.add('hidden');
-            currentPatientId = null;
-            activePlanId = null;
+            currentPatient = null;
+            activePlan = null;
         }
 
-        async function openBillingModal(patientId, patientName, mrn) {
-            currentPatientId = patientId;
-            document.getElementById('billingPatientTitle').innerText = `${patientName} (MRN: #${mrn}) - Financial Ledger`;
+        async function openBillingModal(patientId) {
+            const { data: pts } = await sb.from('patients').select('*').eq('id', patientId).single();
+            if (!pts) return;
+            currentPatient = pts;
+
+            document.getElementById('billingPatientTitle').innerText = `${pts.full_name} (MRN: #${pts.file_number}) - Financial Ledger`;
             document.getElementById('billingModal').classList.remove('hidden');
 
-            await fetchOrCreatePatientPlan(patientId);
+            await fetchOrCreatePatientPlan(pts);
             await loadPlanDetails();
         }
 
-        async function fetchOrCreatePatientPlan(patientId) {
-            // Find existing active plan or create one
+        async function fetchOrCreatePatientPlan(patient) {
             const { data: plans } = await sb
                 .from('treatment_plans')
                 .select('*')
-                .eq('patient_id', patientId)
+                .eq('patient_id', patient.id)
                 .order('created_at', { ascending: false })
                 .limit(1);
 
             if (plans && plans.length > 0) {
-                activePlanId = plans[0].id;
+                activePlan = plans[0];
             } else {
+                const defaultIns = patient.billing_category.includes('Insurance');
                 const { data: newPlan } = await sb
                     .from('treatment_plans')
-                    .insert([{ patient_id: patientId, plan_name: 'Primary Treatment Plan' }])
+                    .insert([{ 
+                        patient_id: patient.id, 
+                        plan_name: 'Primary Hospital Dental Plan',
+                        billing_category: patient.billing_category || 'Cash - Egyptian',
+                        insurance_coverage_percent: defaultIns ? 80.00 : 0.00,
+                        insurance_coverage_limit: 0.00
+                    }])
                     .select();
-                if (newPlan && newPlan.length > 0) activePlanId = newPlan[0].id;
+                if (newPlan && newPlan.length > 0) activePlan = newPlan[0];
+            }
+
+            // Populate form fields
+            document.getElementById('plan_category').value = activePlan.billing_category || patient.billing_category || 'Cash - Egyptian';
+            document.getElementById('plan_ins_company').value = activePlan.insurance_company || '';
+            document.getElementById('plan_ins_pct').value = activePlan.insurance_coverage_percent || (activePlan.billing_category.includes('Insurance') ? 80 : 0);
+            document.getElementById('plan_ins_cap').value = activePlan.insurance_coverage_limit || 0;
+        }
+
+        function updatePlanInsuranceParams() {
+            const cat = document.getElementById('plan_category').value;
+            const pctInput = document.getElementById('plan_ins_pct');
+            if (cat.includes('Insurance')) {
+                if (!pctInput.value || pctInput.value == 0) pctInput.value = 80;
+            } else {
+                pctInput.value = 0;
+            }
+        }
+
+        async function savePlanPolicy() {
+            if (!activePlan) return;
+
+            const updated = {
+                billing_category: document.getElementById('plan_category').value,
+                insurance_company: document.getElementById('plan_ins_company').value.trim() || null,
+                insurance_coverage_percent: parseFloat(document.getElementById('plan_ins_pct').value) || 0,
+                insurance_coverage_limit: parseFloat(document.getElementById('plan_ins_cap').value) || 0
+            };
+
+            const { error } = await sb.from('treatment_plans').update(updated).eq('id', activePlan.id);
+            if (error) alert('Error: ' + error.message);
+            else {
+                activePlan = { ...activePlan, ...updated };
+                await loadPlanDetails();
+                alert('Billing Policy Updated');
             }
         }
 
         async function loadPlanDetails() {
-            if (!activePlanId || !currentPatientId) return;
+            if (!activePlan || !currentPatient) return;
 
             // 1. Fetch Items
             const { data: items } = await sb
                 .from('treatment_items')
                 .select('*')
-                .eq('plan_id', activePlanId)
+                .eq('plan_id', activePlan.id)
                 .order('created_at', { ascending: true });
 
+            loadedItems = items || [];
             const itemsTbody = document.getElementById('treatmentItemsBody');
             itemsTbody.innerHTML = '';
-            let totalCost = 0;
+            let grossTotal = 0;
 
-            if (items && items.length > 0) {
-                items.forEach(it => {
-                    totalCost += parseFloat(it.price || 0);
+            if (loadedItems.length > 0) {
+                loadedItems.forEach(it => {
+                    grossTotal += parseFloat(it.price || 0);
                     itemsTbody.innerHTML += `
                         <tr class="hover:bg-slate-50">
                             <td class="p-3 font-mono font-bold text-blue-600">${it.tooth_number ? '#' + it.tooth_number : 'General'}</td>
@@ -682,16 +884,17 @@
             const { data: payments } = await sb
                 .from('payments')
                 .select('*')
-                .eq('patient_id', currentPatientId)
+                .eq('patient_id', currentPatient.id)
                 .order('created_at', { ascending: false });
 
+            loadedPayments = payments || [];
             const payTbody = document.getElementById('paymentLogsBody');
             payTbody.innerHTML = '';
-            let totalPaid = 0;
+            let patientPaid = 0;
 
-            if (payments && payments.length > 0) {
-                payments.forEach(pay => {
-                    totalPaid += parseFloat(pay.amount_paid || 0);
+            if (loadedPayments.length > 0) {
+                loadedPayments.forEach(pay => {
+                    patientPaid += parseFloat(pay.amount_paid || 0);
                     const dStr = new Date(pay.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                     payTbody.innerHTML += `
                         <tr class="hover:bg-slate-50">
@@ -707,15 +910,27 @@
                 payTbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No payments recorded.</td></tr>`;
             }
 
-            // Update Summary Cards
-            const balance = totalCost - totalPaid;
-            document.getElementById('planTotalCost').innerText = `${totalCost.toLocaleString()} EGP`;
-            document.getElementById('planTotalPaid').innerText = `${totalPaid.toLocaleString()} EGP`;
-            document.getElementById('planBalance').innerText = `${balance.toLocaleString()} EGP`;
+            // 3. Mathematical Splitting: Insurance vs Patient
+            const covPct = parseFloat(activePlan.insurance_coverage_percent || 0) / 100.0;
+            const cap = parseFloat(activePlan.insurance_coverage_limit || 0);
+
+            let insuranceShare = grossTotal * covPct;
+            if (cap > 0 && insuranceShare > cap) {
+                insuranceShare = cap; // apply limit
+            }
+
+            const patientResponsibility = Math.max(0, grossTotal - insuranceShare);
+            const patientDue = Math.max(0, patientResponsibility - patientPaid);
+
+            // Update UI Cards
+            document.getElementById('planGrossTotal').innerText = `${grossTotal.toLocaleString()} EGP`;
+            document.getElementById('planInsuranceClaim').innerText = `${insuranceShare.toLocaleString()} EGP`;
+            document.getElementById('planPatientPaid').innerText = `${patientPaid.toLocaleString()} EGP`;
+            document.getElementById('planPatientDue').innerText = `${patientDue.toLocaleString()} EGP`;
         }
 
         async function addTreatmentItem() {
-            if (!activePlanId) return;
+            if (!activePlan) return;
             const toothNum = document.getElementById('item_tooth').value;
             const procName = document.getElementById('item_name').value.trim();
             const priceVal = parseFloat(document.getElementById('item_price').value);
@@ -727,16 +942,16 @@
             btn.disabled = true;
 
             const { error } = await sb.from('treatment_items').insert([{
-                plan_id: activePlanId,
+                plan_id: activePlan.id,
                 tooth_number: toothNum ? parseInt(toothNum) : null,
                 procedure_name: procName,
                 price: priceVal
             }]);
 
-            btn.innerText = 'Add To Plan';
+            btn.innerText = 'Add To Invoice';
             btn.disabled = false;
 
-            if (error) alert('Error adding item: ' + error.message);
+            if (error) alert('Error: ' + error.message);
             else {
                 document.getElementById('item_tooth').value = '';
                 document.getElementById('item_name').value = '';
@@ -746,7 +961,7 @@
         }
 
         async function recordPayment() {
-            if (!currentPatientId) return;
+            if (!currentPatient || !activePlan) return;
             const amountVal = parseFloat(document.getElementById('pay_amount').value);
             const methodVal = document.getElementById('pay_method').value;
             const notesVal = document.getElementById('pay_notes').value.trim();
@@ -758,17 +973,17 @@
             btn.disabled = true;
 
             const { error } = await sb.from('payments').insert([{
-                patient_id: currentPatientId,
-                plan_id: activePlanId,
+                patient_id: currentPatient.id,
+                plan_id: activePlan.id,
                 amount_paid: amountVal,
                 payment_method: methodVal,
                 notes: notesVal
             }]);
 
-            btn.innerText = 'Record Payment';
+            btn.innerText = 'Record Patient Payment';
             btn.disabled = false;
 
-            if (error) alert('Error recording payment: ' + error.message);
+            if (error) alert('Error: ' + error.message);
             else {
                 document.getElementById('pay_amount').value = '';
                 document.getElementById('pay_notes').value = '';
@@ -776,15 +991,70 @@
             }
         }
 
+        // --- PRINT INVOICE & RECEIPT ---
+        function printInvoiceReceipt() {
+            if (!currentPatient || !activePlan) return;
+
+            document.getElementById('printInvNumber').innerText = `INV-SC-${activePlan.id.substring(0, 6).toUpperCase()}`;
+            document.getElementById('printInvDate').innerText = `Date: ${new Date().toLocaleDateString('en-GB')}`;
+            document.getElementById('printPatientName').innerText = currentPatient.full_name;
+            document.getElementById('printPatientMRN').innerText = `#${currentPatient.file_number}`;
+            document.getElementById('printPatientPhone').innerText = currentPatient.phone;
+
+            document.getElementById('printBillingCat').innerText = activePlan.billing_category || 'Cash Standard';
+            document.getElementById('printInsCo').innerText = activePlan.insurance_company || 'None / Self-pay';
+            
+            const covPct = parseFloat(activePlan.insurance_coverage_percent || 0);
+            const cap = parseFloat(activePlan.insurance_coverage_limit || 0);
+            document.getElementById('printCoverageTerms').innerText = covPct > 0 
+                ? `${covPct}% Covered ${cap > 0 ? '(Max Cap: ' + cap + ' EGP)' : ''}` 
+                : '100% Patient Direct Pay';
+
+            // Items Table
+            const printTbody = document.getElementById('printItemsTbody');
+            printTbody.innerHTML = '';
+            let gross = 0;
+
+            loadedItems.forEach((it, idx) => {
+                gross += parseFloat(it.price || 0);
+                printTbody.innerHTML += `
+                    <tr>
+                        <td class="p-2">${idx + 1}</td>
+                        <td class="p-2 font-mono font-bold">${it.tooth_number ? '#' + it.tooth_number : '-'}</td>
+                        <td class="p-2 font-medium">${it.procedure_name}</td>
+                        <td class="p-2 text-right font-bold">${parseFloat(it.price).toLocaleString()} EGP</td>
+                    </tr>
+                `;
+            });
+
+            // Financial Summary
+            let insShare = gross * (covPct / 100.0);
+            if (cap > 0 && insShare > cap) insShare = cap;
+
+            const patientNet = Math.max(0, gross - insShare);
+            let cashPaid = 0;
+            loadedPayments.forEach(p => cashPaid += parseFloat(p.amount_paid || 0));
+            const balanceDue = Math.max(0, patientNet - cashPaid);
+
+            document.getElementById('printGrossTotal').innerText = `${gross.toLocaleString()} EGP`;
+            document.getElementById('printInsShare').innerText = `${insShare.toLocaleString()} EGP`;
+            document.getElementById('printPatientNet').innerText = `${patientNet.toLocaleString()} EGP`;
+            document.getElementById('printCashPaid').innerText = `${cashPaid.toLocaleString()} EGP`;
+            document.getElementById('printBalanceDue').innerText = `${balanceDue.toLocaleString()} EGP`;
+
+            // Trigger Browser Print
+            window.print();
+        }
+
         // --- ODONTOGRAM LOGIC ---
         function closeChartModal() {
             document.getElementById('chartModal').classList.add('hidden');
             document.getElementById('toothActionBox').classList.add('hidden');
-            currentPatientId = null;
+            currentPatient = null;
         }
 
         async function openDentalChart(patientId, patientName, mrn) {
-            currentPatientId = patientId;
+            currentPatient = { id: patientId, full_name: patientName, file_number: mrn };
             document.getElementById('chartPatientTitle').innerText = `${patientName} (MRN: #${mrn}) - Odontogram`;
             document.getElementById('toothActionBox').classList.add('hidden');
             document.getElementById('chartModal').classList.remove('hidden');
@@ -859,13 +1129,13 @@
         }
 
         async function saveToothDiagnosis() {
-            if (!currentPatientId || !activeSelectedTooth) return;
+            if (!currentPatient || !activeSelectedTooth) return;
             const btn = document.getElementById('saveToothBtn');
             btn.innerText = 'Saving...';
             btn.disabled = true;
 
             const record = {
-                patient_id: currentPatientId,
+                patient_id: currentPatient.id,
                 tooth_number: activeSelectedTooth,
                 condition: document.getElementById('tooth_cond').value,
                 surface: document.getElementById('tooth_surface').value,
@@ -878,7 +1148,7 @@
 
             if (error) alert('Error: ' + error.message);
             else {
-                await fetchPatientTeethRecords(currentPatientId);
+                await fetchPatientTeethRecords(currentPatient.id);
                 renderOdontogramGrid();
                 selectTooth(activeSelectedTooth, record.condition, record.surface, record.notes);
             }
@@ -893,6 +1163,7 @@
 
             const { error } = await sb.from('patients').insert([{
                 full_name: document.getElementById('p_name').value.trim(),
+                billing_category: document.getElementById('p_category').value,
                 phone: document.getElementById('p_phone').value.trim(),
                 gender: document.getElementById('p_gender').value,
                 date_of_birth: document.getElementById('p_dob').value || null,
