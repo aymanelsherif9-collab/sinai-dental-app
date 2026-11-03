@@ -48,7 +48,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dental Clinical Dashboard</h1>
-                <p class="text-xs text-slate-500 mt-1">Chair schedules, digital odontograms, clinical treatment stages, radiographs & lab tracking</p>
+                <p class="text-xs text-slate-500 mt-1">Chair schedules, digital odontograms, clinical treatment stages, radiographs & consents</p>
             </div>
             <div class="flex gap-2">
                 <button type="button" onclick="openAppModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
@@ -75,8 +75,8 @@
                 <h2 id="totalChairs" class="text-3xl font-extrabold text-slate-900 mt-2">--</h2>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Lab Orders</span>
-                <h2 id="totalLabOrders" class="text-3xl font-extrabold text-amber-600 mt-2">--</h2>
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Signed Consents</span>
+                <h2 id="totalConsents" class="text-3xl font-extrabold text-emerald-600 mt-2">--</h2>
             </div>
         </div>
 
@@ -122,7 +122,7 @@
         </div>
     </main>
 
-    <!-- Modal: Clinical Suite (Treatment Plan, Dental Lab, E-Prescriptions & X-Rays) -->
+    <!-- Modal: Clinical Suite -->
     <div id="clinicalSuiteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
         <div class="bg-white rounded-3xl max-w-5xl w-full p-6 space-y-6 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-4">
@@ -142,6 +142,9 @@
             <div class="flex border-b border-slate-200 text-xs font-bold overflow-x-auto">
                 <button type="button" id="tabBtnPlan" onclick="switchClinicalTab('plan')" class="py-2.5 px-4 text-blue-600 border-b-2 border-blue-600 whitespace-nowrap">
                     📋 Treatment Plan & Procedures
+                </button>
+                <button type="button" id="tabBtnConsent" onclick="switchClinicalTab('consent')" class="py-2.5 px-4 text-slate-500 hover:text-slate-700 border-b-2 border-transparent whitespace-nowrap">
+                    📝 Informed Consents
                 </button>
                 <button type="button" id="tabBtnXray" onclick="switchClinicalTab('xray')" class="py-2.5 px-4 text-slate-500 hover:text-slate-700 border-b-2 border-transparent whitespace-nowrap">
                     🖼️ X-Rays & Radiographs
@@ -198,7 +201,70 @@
                 </div>
             </div>
 
-            <!-- TAB 2: X-Rays & Medical Imaging -->
+            <!-- TAB 2: Informed Consents -->
+            <div id="tabConsentContent" class="space-y-4 hidden">
+                <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 space-y-3">
+                    <h4 class="text-xs font-bold text-emerald-900 uppercase tracking-wider">📝 Issue Clinical Informed Consent</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Procedure Type *</label>
+                            <select id="consent_proc" onchange="updateConsentPreview()" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white">
+                                <option value="Surgical Extraction & Wisdom Teeth">Surgical Extraction & Wisdom Teeth (خلع جراحي)</option>
+                                <option value="Endodontic Root Canal Therapy">Endodontic Root Canal Therapy (علاج جذور وأعصاب)</option>
+                                <option value="Dental Implant Surgery">Dental Implant Surgery (زراعة الأسنان)</option>
+                                <option value="Fixed Prosthodontics & Veneers">Fixed Prosthodontics & Veneers (تركيبات وعدسات)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Target Tooth # (Optional)</label>
+                            <input id="consent_tooth" type="number" min="1" max="32" placeholder="e.g. 18, 38" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Signee Name (Patient / Guardian) *</label>
+                            <input id="consent_signee" type="text" placeholder="Full Name" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                        </div>
+                    </div>
+
+                    <!-- Legal Text Preview Box -->
+                    <div class="p-3 bg-white border border-slate-200 rounded-xl text-xs space-y-1.5 text-slate-600">
+                        <span class="font-bold text-slate-800 block text-[11px] uppercase tracking-wide">Key Clinical Acknowledgement:</span>
+                        <p id="consentPreviewText" class="text-[11px] leading-relaxed italic text-slate-500">
+                            I understand the necessity of surgical extraction, potential risks including post-op swelling, bleeding, temporary numbness, and the importance of post-operative compliance.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center space-x-2 pt-1">
+                        <input id="consent_check" type="checkbox" checked class="rounded text-emerald-600 focus:ring-emerald-500 h-4 w-4" />
+                        <label for="consent_check" class="text-xs font-semibold text-slate-700">Patient confirmed verbal understanding of risks, alternatives, and benefits.</label>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" onclick="saveAndPrintConsent()" id="saveConsentBtn" class="bg-emerald-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-sm">
+                            🖨️ Save & Print Official Consent
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Previous Consents Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+                            <tr>
+                                <th class="p-3">Procedure Type</th>
+                                <th class="p-3">Tooth #</th>
+                                <th class="p-3">Signee</th>
+                                <th class="p-3">Date</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consentsHistoryBody" class="divide-y divide-slate-100">
+                            <tr><td colspan="5" class="p-4 text-center text-slate-400">No signed consents recorded for this patient.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: X-Rays & Medical Imaging -->
             <div id="tabXrayContent" class="space-y-4 hidden">
                 <div class="bg-blue-50/60 p-4 rounded-2xl border border-blue-200 space-y-3">
                     <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider">🖼️ Upload Radiograph / Clinical Image</h4>
@@ -225,7 +291,6 @@
                     </div>
                 </div>
 
-                <!-- X-Rays Gallery Grid -->
                 <div>
                     <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Stored Radiographs & Photos</h4>
                     <div id="xraysGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -234,7 +299,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: Dental Lab Work Orders -->
+            <!-- TAB 4: Dental Lab Work Orders -->
             <div id="tabLabContent" class="space-y-4 hidden">
                 <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200 space-y-3">
                     <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider">🔬 New Dental Lab Prescription</h4>
@@ -300,7 +365,7 @@
                 </div>
             </div>
 
-            <!-- TAB 4: E-Prescriptions -->
+            <!-- TAB 5: E-Prescriptions -->
             <div id="tabRxContent" class="space-y-4 hidden">
                 <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 space-y-3">
                     <h4 class="text-xs font-bold text-emerald-900 uppercase tracking-wider">💊 Compose Electronic Prescription</h4>
@@ -341,7 +406,7 @@
         </div>
     </div>
 
-    <!-- Image Lightbox Modal (For Zooming X-Rays) -->
+    <!-- Image Lightbox Modal -->
     <div id="imageLightboxModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden no-print" onclick="closeLightbox()">
         <div class="max-w-4xl max-h-[90vh] p-2 bg-slate-900 rounded-2xl border border-slate-700 space-y-2" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center text-white px-2">
@@ -353,7 +418,7 @@
         </div>
     </div>
 
-    <!-- Official Printable Document Container (Printable Rx & Clinical Summary) -->
+    <!-- Official Printable Document Container -->
     <div id="printableDocument" class="hidden">
         <div class="border-b-2 border-slate-900 pb-4 mb-6 flex justify-between items-start">
             <div>
@@ -362,7 +427,7 @@
                 <p class="text-[11px] text-slate-500">Sharm El Sheikh, South Sinai, Egypt | Tel: +20 69 3660000</p>
             </div>
             <div class="text-right">
-                <h2 id="printDocHeader" class="text-lg font-black text-blue-700 uppercase">OFFICIAL MEDICAL PRESCRIPTION</h2>
+                <h2 id="printDocHeader" class="text-lg font-black text-blue-700 uppercase">OFFICIAL MEDICAL DOCUMENT</h2>
                 <p class="text-xs font-mono font-bold text-slate-800" id="printDocDate">Date: --/--/----</p>
             </div>
         </div>
@@ -383,9 +448,9 @@
 
         <div class="grid grid-cols-2 gap-8 text-center text-xs pt-8 border-t-2 border-slate-200">
             <div>
-                <p class="font-bold text-slate-700">Patient Compliance Signature</p>
+                <p class="font-bold text-slate-700">Patient / Legal Guardian</p>
                 <div class="h-16"></div>
-                <p class="text-slate-400 border-t border-slate-300 pt-1">Patient Acknowledgement</p>
+                <p class="text-slate-400 border-t border-slate-300 pt-1">Signature & Acceptance</p>
             </div>
             <div>
                 <p class="font-bold text-slate-900">Attending Dental Clinician</p>
@@ -632,6 +697,13 @@
         let currentToothRecords = {};
         let activeSelectedTooth = null;
 
+        const CONSENT_TEXTS = {
+            'Surgical Extraction & Wisdom Teeth': 'I acknowledge that surgical tooth removal carries inherent risks including localized post-operative pain, swelling, transient or permanent nerve numbness (lingual/inferior alveolar), maxillary sinus perforation, and dry socket. I agree to adhere strictly to post-operative hygiene protocols.',
+            'Endodontic Root Canal Therapy': 'I understand that root canal treatment is aimed at saving an infected or damaged tooth. Risks include post-treatment sensitivity, calcified/curved canals, instrument fracture, and potential persistence of apical infection requiring apicoectomy or extraction. A definitive crown is strongly recommended after completion.',
+            'Dental Implant Surgery': 'I authorize the surgical placement of dental implant fixtures into the jawbone. I understand risks include failure of osseointegration, infection, bone loss, and potential sinus or nerve complications. I commit to attending maintenance follow-ups and maintaining optimal oral hygiene.',
+            'Fixed Prosthodontics & Veneers': 'I understand that preparation of teeth for crowns/bridges or veneers involves permanent enamel reduction. Sensitivity may occur. I have verified and approved the aesthetic shade and anatomical contour prior to permanent cementation.'
+        };
+
         function openPatModal() { document.getElementById('patModal').classList.remove('hidden'); }
         function closePatModal() { document.getElementById('patModal').classList.add('hidden'); document.getElementById('patForm').reset(); }
         function openAppModal() { document.getElementById('appModal').classList.remove('hidden'); }
@@ -720,9 +792,9 @@
             const { data: b } = await sb.from('branches').select('id').limit(1);
             if (b && b.length > 0) branchId = b[0].id;
 
-            // 2. Counts
-            const { count: labCount } = await sb.from('dental_lab_orders').select('*', { count: 'exact', head: true });
-            document.getElementById('totalLabOrders').innerText = labCount || 0;
+            // 2. Consents Count
+            const { count: cCount } = await sb.from('patient_consents').select('*', { count: 'exact', head: true });
+            document.getElementById('totalConsents').innerText = cCount || 0;
 
             // 3. Patients
             const { data: pts } = await sb.from('patients').select('*').order('created_at', { ascending: false });
@@ -795,11 +867,13 @@
         // --- CLINICAL SUITE TABS ---
         function switchClinicalTab(tab) {
             document.getElementById('tabPlanContent').classList.add('hidden');
+            document.getElementById('tabConsentContent').classList.add('hidden');
             document.getElementById('tabXrayContent').classList.add('hidden');
             document.getElementById('tabLabContent').classList.add('hidden');
             document.getElementById('tabRxContent').classList.add('hidden');
 
             document.getElementById('tabBtnPlan').className = "py-2.5 px-4 text-slate-500 hover:text-slate-700 border-b-2 border-transparent whitespace-nowrap";
+            document.getElementById('tabBtnConsent').className = "py-2.5 px-4 text-slate-500 hover:text-slate-700 border-b-2 border-transparent whitespace-nowrap";
             document.getElementById('tabBtnXray').className = "py-2.5 px-4 text-slate-500 hover:text-slate-700 border-b-2 border-transparent whitespace-nowrap";
             document.getElementById('tabBtnLab').className = "py-2.5 px-4 text-slate-500 hover:text-slate-700 border-b-2 border-transparent whitespace-nowrap";
             document.getElementById('tabBtnRx').className = "py-2.5 px-4 text-slate-500 hover:text-slate-700 border-b-2 border-transparent whitespace-nowrap";
@@ -807,6 +881,9 @@
             if (tab === 'plan') {
                 document.getElementById('tabPlanContent').classList.remove('hidden');
                 document.getElementById('tabBtnPlan').className = "py-2.5 px-4 text-blue-600 border-b-2 border-blue-600 font-bold whitespace-nowrap";
+            } else if (tab === 'consent') {
+                document.getElementById('tabConsentContent').classList.remove('hidden');
+                document.getElementById('tabBtnConsent').className = "py-2.5 px-4 text-emerald-600 border-b-2 border-emerald-600 font-bold whitespace-nowrap";
             } else if (tab === 'xray') {
                 document.getElementById('tabXrayContent').classList.remove('hidden');
                 document.getElementById('tabBtnXray').className = "py-2.5 px-4 text-blue-600 border-b-2 border-blue-600 font-bold whitespace-nowrap";
@@ -831,11 +908,13 @@
             currentPatient = pt;
 
             document.getElementById('clinicalPatientTitle').innerText = `${pt.full_name} (MRN: #${pt.file_number}) - Clinical Suite`;
+            document.getElementById('consent_signee').value = pt.full_name;
             document.getElementById('clinicalSuiteModal').classList.remove('hidden');
             switchClinicalTab('plan');
 
             await fetchOrCreatePlan(pt.id);
             await loadTreatmentProcedures();
+            await loadConsentsHistory();
             await loadXrays();
             await loadLabOrders();
             await loadRxHistory();
@@ -851,6 +930,105 @@
             }
         }
 
+        // --- INFORMED CONSENTS LOGIC ---
+        function updateConsentPreview() {
+            const proc = document.getElementById('consent_proc').value;
+            document.getElementById('consentPreviewText').innerText = CONSENT_TEXTS[proc] || 'General clinical acknowledgement of procedure risks and patient cooperation.';
+        }
+
+        async function loadConsentsHistory() {
+            if (!currentPatient) return;
+            const { data: consents } = await sb.from('patient_consents').select('*').eq('patient_id', currentPatient.id).order('created_at', { ascending: false });
+            const tbody = document.getElementById('consentsHistoryBody');
+            tbody.innerHTML = '';
+
+            if (consents && consents.length > 0) {
+                consents.forEach(c => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-semibold text-slate-800">${c.procedure_type}</td>
+                            <td class="p-3 font-mono font-bold text-blue-600">${c.tooth_number ? '#' + c.tooth_number : 'Arch / General'}</td>
+                            <td class="p-3 text-slate-600">${c.signed_by}</td>
+                            <td class="p-3 text-slate-500 font-mono text-[11px]">${c.consent_date}</td>
+                            <td class="p-3 text-center">
+                                <button type="button" onclick="reprintConsent('${encodeURIComponent(c.procedure_type)}', '${c.tooth_number || ''}', '${encodeURIComponent(c.signed_by)}', '${c.consent_date}')" class="text-blue-600 hover:text-blue-800 font-bold underline">Print</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No signed consents recorded for this patient.</td></tr>`;
+            }
+        }
+
+        async function saveAndPrintConsent() {
+            if (!currentPatient) return;
+            const procType = document.getElementById('consent_proc').value;
+            const toothVal = document.getElementById('consent_tooth').value;
+            const signeeVal = document.getElementById('consent_signee').value.trim();
+
+            if (!signeeVal) return alert('Please enter signee name');
+
+            const btn = document.getElementById('saveConsentBtn');
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            const { error } = await sb.from('patient_consents').insert([{
+                patient_id: currentPatient.id,
+                procedure_type: procType,
+                tooth_number: toothVal ? parseInt(toothVal) : null,
+                signed_by: signeeVal,
+                consent_date: new Date().toISOString().split('T')[0]
+            }]);
+
+            btn.innerText = 'Save & Print Official Consent';
+            btn.disabled = false;
+
+            if (error) alert('Error: ' + error.message);
+            else {
+                await loadConsentsHistory();
+                const { count: cCount } = await sb.from('patient_consents').select('*', { count: 'exact', head: true });
+                document.getElementById('totalConsents').innerText = cCount || 0;
+                reprintConsent(encodeURIComponent(procType), toothVal, encodeURIComponent(signeeVal), new Date().toLocaleDateString('en-GB'));
+            }
+        }
+
+        function reprintConsent(encProc, tooth, encSignee, dateStr) {
+            const proc = decodeURIComponent(encProc);
+            const signee = decodeURIComponent(encSignee);
+            const bodyText = CONSENT_TEXTS[proc] || 'I acknowledge having been informed of the clinical procedure, associated risks, and alternative options.';
+
+            setupPrintHeader(`INFORMED CONSENT & SURGICAL ACKNOWLEDGEMENT - ${proc.toUpperCase()}`, dateStr);
+
+            document.getElementById('printBodyContent').innerHTML = `
+                <div class="space-y-6 leading-relaxed">
+                    <div class="p-4 bg-slate-50 border border-slate-300 rounded-xl">
+                        <span class="font-bold text-slate-900 block mb-2 text-xs uppercase tracking-wide">Procedure Details:</span>
+                        <p class="text-xs text-slate-700"><b>Procedure:</b> ${proc} ${tooth ? '(Target Tooth: #' + tooth + ')' : ''}</p>
+                    </div>
+
+                    <div class="space-y-3 text-xs text-slate-800">
+                        <p class="font-bold uppercase tracking-wider text-slate-900">Declaration & Consent Agreement:</p>
+                        <p class="text-justify leading-relaxed">${bodyText}</p>
+                        <ul class="list-disc pl-5 space-y-1 text-slate-600 text-[11px]">
+                            <li>I have discussed the nature, purpose, risks, and benefits of the proposed dental treatment with my dentist.</li>
+                            <li>I had full opportunity to ask questions and all inquiries have been answered to my satisfaction.</li>
+                            <li>I understand that individual biological response can vary and exact clinical outcomes cannot be 100% guaranteed.</li>
+                            <li>I confirm that I have disclosed my complete medical history, chronic conditions, and drug allergies.</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-4 bg-emerald-50/50 border border-emerald-200 rounded-xl text-xs">
+                        <span class="font-bold text-emerald-900 block mb-1">Acknowledgement of Signee:</span>
+                        <p class="text-slate-700">I, <b>${signee}</b>, hereby voluntarily give my informed consent to Sinai Clinic Hospital dental surgical team to proceed with the specified procedure.</p>
+                    </div>
+                </div>
+            `;
+
+            window.print();
+        }
+
+        // --- TREATMENT PLAN PROCEDURES ---
         async function loadTreatmentProcedures() {
             if (!activePlanId) return;
             const { data: items } = await sb.from('treatment_items').select('*').eq('plan_id', activePlanId).order('created_at', { ascending: true });
@@ -969,19 +1147,16 @@
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${currentPatient.id}/${Date.now()}.${fileExt}`;
 
-                // Upload to Supabase Storage Bucket
                 const { data: uploadData, error: uploadErr } = await sb.storage
                     .from('dental-records')
                     .upload(fileName, file);
 
                 if (uploadErr) throw uploadErr;
 
-                // Get Public URL
                 const { data: urlData } = sb.storage
                     .from('dental-records')
                     .getPublicUrl(fileName);
 
-                // Insert record in patient_xrays table
                 const { error: dbErr } = await sb.from('patient_xrays').insert([{
                     patient_id: currentPatient.id,
                     tooth_number: toothVal ? parseInt(toothVal) : null,
@@ -993,7 +1168,6 @@
 
                 if (dbErr) throw dbErr;
 
-                // Reset fields & Reload
                 fileInput.value = '';
                 document.getElementById('xray_title').value = '';
                 document.getElementById('xray_tooth').value = '';
@@ -1082,8 +1256,6 @@
                 document.getElementById('lab_tooth').value = '';
                 document.getElementById('lab_notes').value = '';
                 await loadLabOrders();
-                const { count: labCount } = await sb.from('dental_lab_orders').select('*', { count: 'exact', head: true });
-                document.getElementById('totalLabOrders').innerText = labCount || 0;
             }
         }
 
