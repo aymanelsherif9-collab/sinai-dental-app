@@ -7,15 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        .tooth-box {
-            transition: all 0.2s ease;
-            cursor: pointer;
-            user-select: none;
-        }
-        .tooth-box:hover {
-            transform: scale(1.08);
-            z-index: 10;
-        }
+        .tooth-box { transition: all 0.2s ease; cursor: pointer; user-select: none; }
+        .tooth-box:hover { transform: scale(1.08); z-index: 10; }
         .cond-Healthy { background-color: #ffffff; border-color: #cbd5e1; color: #334155; }
         .cond-Caries { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; }
         .cond-Filling { background-color: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
@@ -48,7 +41,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dental Operations Dashboard</h1>
-                <p class="text-xs text-slate-500 mt-1">Interactive weekly schedule, chair occupancy, patients & clinical charting</p>
+                <p class="text-xs text-slate-500 mt-1">Weekly schedule, clinical charts, treatment plans & EGP billing</p>
             </div>
             <div class="flex gap-2">
                 <button type="button" onclick="openAppModal()" class="inline-flex items-center justify-center bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm transition">
@@ -80,7 +73,7 @@
             </div>
         </div>
 
-        <!-- Interactive Weekly Schedule -->
+        <!-- Weekly Schedule Planner -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 pb-4">
                 <div>
@@ -96,7 +89,7 @@
             <div id="calendarGrid" class="grid grid-cols-1 md:grid-cols-7 gap-3 min-h-[320px]"></div>
         </div>
 
-        <!-- Patients Live Table -->
+        <!-- Patients Directory with Chart & Billing Actions -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="text-base font-bold text-slate-900">Patient Directory & Clinical Files</h3>
@@ -108,21 +101,139 @@
                         <tr>
                             <th class="py-3 px-6">MRN</th>
                             <th class="py-3 px-6">Patient Name</th>
-                            <th class="py-3 px-6">Gender</th>
                             <th class="py-3 px-6">Phone</th>
                             <th class="py-3 px-6">Medical Alerts</th>
-                            <th class="py-3 px-6">Clinical Chart</th>
+                            <th class="py-3 px-6 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="patientsTableBody" class="divide-y divide-slate-100 text-sm">
                         <tr>
-                            <td colspan="6" class="py-6 text-center text-slate-400">Loading patients data...</td>
+                            <td colspan="5" class="py-6 text-center text-slate-400">Loading patients data...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
+
+    <!-- Modal: Treatment Planning & Billing -->
+    <div id="billingModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-3xl max-w-4xl w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-4">
+                <div>
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Financial & Clinical Operations</span>
+                    <h3 id="billingPatientTitle" class="text-xl font-black text-slate-900 mt-0.5">Treatment Plan & Payments (EGP)</h3>
+                </div>
+                <button type="button" onclick="closeBillingModal()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
+            </div>
+
+            <!-- Financial Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Total Plan Cost</span>
+                    <h4 id="planTotalCost" class="text-2xl font-black text-slate-900 mt-1">0.00 EGP</h4>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
+                    <span class="text-xs font-semibold text-emerald-600 uppercase">Total Paid</span>
+                    <h4 id="planTotalPaid" class="text-2xl font-black text-emerald-700 mt-1">0.00 EGP</h4>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl">
+                    <span class="text-xs font-semibold text-rose-500 uppercase">Outstanding Balance</span>
+                    <h4 id="planBalance" class="text-2xl font-black text-rose-700 mt-1">0.00 EGP</h4>
+                </div>
+            </div>
+
+            <!-- Add Procedure Item Form -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">+ Add Treatment Procedure</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tooth # (Optional)</label>
+                        <input id="item_tooth" type="number" min="1" max="32" placeholder="e.g. 14" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Procedure Name *</label>
+                        <input id="item_name" type="text" placeholder="e.g. Composite Restoration, Root Canal, Zirconia Crown" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Price (EGP) *</label>
+                        <input id="item_price" type="number" step="0.5" placeholder="e.g. 1500" class="w-full text-xs p-2.5 border rounded-lg focus:outline-emerald-500 bg-white" />
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" onclick="addTreatmentItem()" id="addItemBtn" class="bg-emerald-600 text-white text-xs px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">Add To Plan</button>
+                </div>
+            </div>
+
+            <!-- Treatment Plan Items Table -->
+            <div>
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Treatment Items List</h4>
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+                            <tr>
+                                <th class="p-3">Tooth #</th>
+                                <th class="p-3">Procedure</th>
+                                <th class="p-3 text-right">Price (EGP)</th>
+                                <th class="p-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="treatmentItemsBody" class="divide-y divide-slate-100">
+                            <tr><td colspan="4" class="p-4 text-center text-slate-400">No procedures added yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Receive Payment Form -->
+            <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-200 space-y-3">
+                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider">💳 Receive Patient Payment</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Amount Paid (EGP) *</label>
+                        <input id="pay_amount" type="number" step="0.5" placeholder="Amount" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Method *</label>
+                        <select id="pay_method" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white">
+                            <option value="Cash">Cash (خزينة)</option>
+                            <option value="Visa / Mastercard">Visa / Mastercard</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Installment">Installment (قسط)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Notes / Receipt Ref</label>
+                        <input id="pay_notes" type="text" placeholder="e.g. Down payment" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white" />
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" onclick="recordPayment()" id="recordPayBtn" class="bg-blue-600 text-white text-xs px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Record Payment</button>
+                </div>
+            </div>
+
+            <!-- Payment Transactions Log -->
+            <div>
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Payment Receipts Log</h4>
+                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-40 overflow-y-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+                            <tr>
+                                <th class="p-2.5">Receipt #</th>
+                                <th class="p-2.5">Method</th>
+                                <th class="p-2.5">Notes</th>
+                                <th class="p-2.5 text-right">Amount (EGP)</th>
+                                <th class="p-2.5 text-right">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentLogsBody" class="divide-y divide-slate-100">
+                            <tr><td colspan="5" class="p-3 text-center text-slate-400">No payments recorded.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Interactive Odontogram (Dental Chart) -->
     <div id="chartModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
@@ -149,32 +260,26 @@
 
             <!-- Teeth Visual Grid (Adult 1-32) -->
             <div class="space-y-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-200">
-                <!-- Upper Arch (Maxilla: 1 - 16) -->
                 <div>
                     <div class="flex justify-between items-center mb-2 px-1">
                         <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Upper Arch (Maxillary)</span>
                         <span class="text-[11px] text-slate-400">Right (1-8) &nbsp;|&nbsp; Left (9-16)</span>
                     </div>
-                    <div id="upperArchGrid" class="grid grid-cols-16 gap-1.5 overflow-x-auto pb-2">
-                        <!-- Teeth 1 to 16 -->
-                    </div>
+                    <div id="upperArchGrid" class="grid grid-cols-16 gap-1.5 overflow-x-auto pb-2"></div>
                 </div>
 
                 <div class="border-t border-dashed border-slate-300"></div>
 
-                <!-- Lower Arch (Mandible: 32 - 17) -->
                 <div>
                     <div class="flex justify-between items-center mb-2 px-1">
                         <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Lower Arch (Mandibular)</span>
                         <span class="text-[11px] text-slate-400">Right (32-25) &nbsp;|&nbsp; Left (24-17)</span>
                     </div>
-                    <div id="lowerArchGrid" class="grid grid-cols-16 gap-1.5 overflow-x-auto pb-2">
-                        <!-- Teeth 32 to 17 -->
-                    </div>
+                    <div id="lowerArchGrid" class="grid grid-cols-16 gap-1.5 overflow-x-auto pb-2"></div>
                 </div>
             </div>
 
-            <!-- Tooth Condition Update Form (Shown when a tooth is clicked) -->
+            <!-- Tooth Condition Update Form -->
             <div id="toothActionBox" class="bg-blue-50/70 border border-blue-200 p-5 rounded-2xl space-y-4 hidden">
                 <div class="flex justify-between items-center">
                     <h4 class="text-sm font-bold text-blue-900">Diagnose & Update Tooth #<span id="selectedToothNum" class="text-base font-extrabold text-blue-600">--</span></h4>
@@ -194,7 +299,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Surface (Optional)</label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Surface</label>
                         <select id="tooth_surface" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white">
                             <option value="Full">Full Tooth</option>
                             <option value="Occlusal">Occlusal (O)</option>
@@ -202,12 +307,11 @@
                             <option value="Distal">Distal (D)</option>
                             <option value="Buccal">Buccal / Facial (B)</option>
                             <option value="Lingual">Lingual / Palatal (L)</option>
-                            <option value="MOD">MOD Composite</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Clinical Findings & Notes</label>
-                        <input id="tooth_notes" type="text" placeholder="e.g. Deep cavity, symptomatic" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white" />
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Clinical Notes</label>
+                        <input id="tooth_notes" type="text" placeholder="Notes" class="w-full text-xs p-2.5 border rounded-lg focus:outline-blue-500 bg-white" />
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
@@ -217,7 +321,7 @@
 
             <!-- Patient Dental History Log -->
             <div>
-                <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Logged Findings For This Patient</h4>
+                <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Logged Findings</h4>
                 <div class="max-h-40 overflow-y-auto border border-slate-200 rounded-xl">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
@@ -230,9 +334,7 @@
                             </tr>
                         </thead>
                         <tbody id="chartLogBody" class="divide-y divide-slate-100">
-                            <tr>
-                                <td colspan="5" class="p-4 text-center text-slate-400">No previous dental findings.</td>
-                            </tr>
+                            <tr><td colspan="5" class="p-4 text-center text-slate-400">No findings logged.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -359,10 +461,11 @@
         let weekOffset = 0;
         let allAppointments = [];
 
-        // Active Charting State
+        // Active States
         let currentPatientId = null;
         let currentToothRecords = {};
         let activeSelectedTooth = null;
+        let activePlanId = null;
 
         function openPatModal() { document.getElementById('patModal').classList.remove('hidden'); }
         function closePatModal() { document.getElementById('patModal').classList.add('hidden'); document.getElementById('patForm').reset(); }
@@ -468,12 +571,14 @@
                         <tr class="hover:bg-slate-50 transition border-b border-slate-100">
                             <td class="py-3.5 px-6 font-mono font-bold text-blue-600">#${p.file_number}</td>
                             <td class="py-3.5 px-6 font-semibold text-slate-900">${p.full_name}</td>
-                            <td class="py-3.5 px-6 text-slate-600">${p.gender || '-'}</td>
                             <td class="py-3.5 px-6 text-slate-500 font-mono text-xs">${p.phone}</td>
                             <td class="py-3.5 px-6 text-slate-600">${p.medical_alerts || 'None'}</td>
-                            <td class="py-3.5 px-6">
-                                <button type="button" onclick="openDentalChart('${p.id}', '${p.full_name}', ${p.file_number})" class="bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition">
+                            <td class="py-3.5 px-6 text-center space-x-2">
+                                <button type="button" onclick="openDentalChart('${p.id}', '${p.full_name}', ${p.file_number})" class="bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition">
                                     🦷 Dental Chart
+                                </button>
+                                <button type="button" onclick="openBillingModal('${p.id}', '${p.full_name}', ${p.file_number})" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-emerald-200 transition">
+                                    💳 Billing & Plan
                                 </button>
                             </td>
                         </tr>
@@ -507,6 +612,170 @@
             }
         }
 
+        // --- TREATMENT PLANNING & BILLING LOGIC ---
+        function closeBillingModal() {
+            document.getElementById('billingModal').classList.add('hidden');
+            currentPatientId = null;
+            activePlanId = null;
+        }
+
+        async function openBillingModal(patientId, patientName, mrn) {
+            currentPatientId = patientId;
+            document.getElementById('billingPatientTitle').innerText = `${patientName} (MRN: #${mrn}) - Financial Ledger`;
+            document.getElementById('billingModal').classList.remove('hidden');
+
+            await fetchOrCreatePatientPlan(patientId);
+            await loadPlanDetails();
+        }
+
+        async function fetchOrCreatePatientPlan(patientId) {
+            // Find existing active plan or create one
+            const { data: plans } = await sb
+                .from('treatment_plans')
+                .select('*')
+                .eq('patient_id', patientId)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (plans && plans.length > 0) {
+                activePlanId = plans[0].id;
+            } else {
+                const { data: newPlan } = await sb
+                    .from('treatment_plans')
+                    .insert([{ patient_id: patientId, plan_name: 'Primary Treatment Plan' }])
+                    .select();
+                if (newPlan && newPlan.length > 0) activePlanId = newPlan[0].id;
+            }
+        }
+
+        async function loadPlanDetails() {
+            if (!activePlanId || !currentPatientId) return;
+
+            // 1. Fetch Items
+            const { data: items } = await sb
+                .from('treatment_items')
+                .select('*')
+                .eq('plan_id', activePlanId)
+                .order('created_at', { ascending: true });
+
+            const itemsTbody = document.getElementById('treatmentItemsBody');
+            itemsTbody.innerHTML = '';
+            let totalCost = 0;
+
+            if (items && items.length > 0) {
+                items.forEach(it => {
+                    totalCost += parseFloat(it.price || 0);
+                    itemsTbody.innerHTML += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono font-bold text-blue-600">${it.tooth_number ? '#' + it.tooth_number : 'General'}</td>
+                            <td class="p-3 font-medium text-slate-800">${it.procedure_name}</td>
+                            <td class="p-3 text-right font-bold text-slate-900">${parseFloat(it.price).toLocaleString()} EGP</td>
+                            <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">${it.status}</span></td>
+                        </tr>
+                    `;
+                });
+            } else {
+                itemsTbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No procedures added yet.</td></tr>`;
+            }
+
+            // 2. Fetch Payments
+            const { data: payments } = await sb
+                .from('payments')
+                .select('*')
+                .eq('patient_id', currentPatientId)
+                .order('created_at', { ascending: false });
+
+            const payTbody = document.getElementById('paymentLogsBody');
+            payTbody.innerHTML = '';
+            let totalPaid = 0;
+
+            if (payments && payments.length > 0) {
+                payments.forEach(pay => {
+                    totalPaid += parseFloat(pay.amount_paid || 0);
+                    const dStr = new Date(pay.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    payTbody.innerHTML += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-mono font-bold text-emerald-600">REC-${pay.receipt_number}</td>
+                            <td class="p-2.5 text-slate-700">${pay.payment_method}</td>
+                            <td class="p-2.5 text-slate-500">${pay.notes || '-'}</td>
+                            <td class="p-2.5 text-right font-bold text-emerald-700">${parseFloat(pay.amount_paid).toLocaleString()} EGP</td>
+                            <td class="p-2.5 text-right text-slate-400 font-mono text-[11px]">${dStr}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                payTbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No payments recorded.</td></tr>`;
+            }
+
+            // Update Summary Cards
+            const balance = totalCost - totalPaid;
+            document.getElementById('planTotalCost').innerText = `${totalCost.toLocaleString()} EGP`;
+            document.getElementById('planTotalPaid').innerText = `${totalPaid.toLocaleString()} EGP`;
+            document.getElementById('planBalance').innerText = `${balance.toLocaleString()} EGP`;
+        }
+
+        async function addTreatmentItem() {
+            if (!activePlanId) return;
+            const toothNum = document.getElementById('item_tooth').value;
+            const procName = document.getElementById('item_name').value.trim();
+            const priceVal = parseFloat(document.getElementById('item_price').value);
+
+            if (!procName || isNaN(priceVal)) return alert('Please enter procedure name and valid price');
+
+            const btn = document.getElementById('addItemBtn');
+            btn.innerText = 'Adding...';
+            btn.disabled = true;
+
+            const { error } = await sb.from('treatment_items').insert([{
+                plan_id: activePlanId,
+                tooth_number: toothNum ? parseInt(toothNum) : null,
+                procedure_name: procName,
+                price: priceVal
+            }]);
+
+            btn.innerText = 'Add To Plan';
+            btn.disabled = false;
+
+            if (error) alert('Error adding item: ' + error.message);
+            else {
+                document.getElementById('item_tooth').value = '';
+                document.getElementById('item_name').value = '';
+                document.getElementById('item_price').value = '';
+                await loadPlanDetails();
+            }
+        }
+
+        async function recordPayment() {
+            if (!currentPatientId) return;
+            const amountVal = parseFloat(document.getElementById('pay_amount').value);
+            const methodVal = document.getElementById('pay_method').value;
+            const notesVal = document.getElementById('pay_notes').value.trim();
+
+            if (isNaN(amountVal) || amountVal <= 0) return alert('Please enter a valid payment amount');
+
+            const btn = document.getElementById('recordPayBtn');
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            const { error } = await sb.from('payments').insert([{
+                patient_id: currentPatientId,
+                plan_id: activePlanId,
+                amount_paid: amountVal,
+                payment_method: methodVal,
+                notes: notesVal
+            }]);
+
+            btn.innerText = 'Record Payment';
+            btn.disabled = false;
+
+            if (error) alert('Error recording payment: ' + error.message);
+            else {
+                document.getElementById('pay_amount').value = '';
+                document.getElementById('pay_notes').value = '';
+                await loadPlanDetails();
+            }
+        }
+
         // --- ODONTOGRAM LOGIC ---
         function closeChartModal() {
             document.getElementById('chartModal').classList.add('hidden');
@@ -526,7 +795,7 @@
 
         async function fetchPatientTeethRecords(patientId) {
             currentToothRecords = {};
-            const { data, error } = await sb
+            const { data } = await sb
                 .from('dental_records')
                 .select('*')
                 .eq('patient_id', patientId)
@@ -537,10 +806,7 @@
 
             if (data && data.length > 0) {
                 data.forEach(rec => {
-                    // Keep most recent condition for the chart representation
-                    if (!currentToothRecords[rec.tooth_number]) {
-                        currentToothRecords[rec.tooth_number] = rec;
-                    }
+                    if (!currentToothRecords[rec.tooth_number]) currentToothRecords[rec.tooth_number] = rec;
                     const timeStr = new Date(rec.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                     logBody.innerHTML += `
                         <tr class="hover:bg-slate-50">
@@ -562,26 +828,16 @@
             const lower = document.getElementById('lowerArchGrid');
             upper.innerHTML = '';
             lower.innerHTML = '';
-
-            // Upper: 1 to 16
-            for (let t = 1; t <= 16; t++) {
-                upper.appendChild(createToothElement(t));
-            }
-
-            // Lower: 32 down to 17 (Clinically standard layout)
-            for (let t = 32; t >= 17; t--) {
-                lower.appendChild(createToothElement(t));
-            }
+            for (let t = 1; t <= 16; t++) upper.appendChild(createToothElement(t));
+            for (let t = 32; t >= 17; t--) lower.appendChild(createToothElement(t));
         }
 
         function createToothElement(tNum) {
             const rec = currentToothRecords[tNum];
             const cond = rec ? rec.condition : 'Healthy';
-
             const div = document.createElement('div');
             div.className = `tooth-box cond-${cond} border-2 rounded-xl p-2 text-center flex flex-col items-center justify-between min-h-[78px] shadow-sm`;
             div.onclick = () => selectTooth(tNum, cond, rec ? rec.surface : 'Full', rec ? rec.notes : '');
-
             div.innerHTML = `
                 <span class="text-[11px] font-black tracking-tight">#${tNum}</span>
                 <span class="text-lg leading-none py-1">🦷</span>
@@ -596,44 +852,35 @@
             document.getElementById('tooth_cond').value = cond;
             document.getElementById('tooth_surface').value = surface || 'Full';
             document.getElementById('tooth_notes').value = notes || '';
-
             const badge = document.getElementById('currentStatusBadge');
             badge.innerText = cond;
             badge.className = `text-xs px-2.5 py-0.5 rounded-full font-bold cond-${cond} border`;
-
             document.getElementById('toothActionBox').classList.remove('hidden');
         }
 
         async function saveToothDiagnosis() {
             if (!currentPatientId || !activeSelectedTooth) return;
-
             const btn = document.getElementById('saveToothBtn');
             btn.innerText = 'Saving...';
             btn.disabled = true;
 
-            const newCond = document.getElementById('tooth_cond').value;
-            const newSurface = document.getElementById('tooth_surface').value;
-            const newNotes = document.getElementById('tooth_notes').value.trim();
-
             const record = {
                 patient_id: currentPatientId,
                 tooth_number: activeSelectedTooth,
-                condition: newCond,
-                surface: newSurface,
-                notes: newNotes
+                condition: document.getElementById('tooth_cond').value,
+                surface: document.getElementById('tooth_surface').value,
+                notes: document.getElementById('tooth_notes').value.trim()
             };
 
             const { error } = await sb.from('dental_records').insert([record]);
-
             btn.innerText = 'Save Diagnosis';
             btn.disabled = false;
 
-            if (error) {
-                alert('Error saving diagnosis: ' + error.message);
-            } else {
+            if (error) alert('Error: ' + error.message);
+            else {
                 await fetchPatientTeethRecords(currentPatientId);
                 renderOdontogramGrid();
-                selectTooth(activeSelectedTooth, newCond, newSurface, newNotes);
+                selectTooth(activeSelectedTooth, record.condition, record.surface, record.notes);
             }
         }
 
